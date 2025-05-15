@@ -1,16 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import axios from "axios";
 import HospitalItem from "./HospitalItem";
 
 import { ENDPOINTS } from "../constants/api";
 
-export default function HospitalList({ region, district }) {
+export default function HospitalList({ region, district, onFetch }) {
   const [hospitalList, setHospitalList] = useState([]);
   const [recommendedName, setRecommendedName] = useState(null); // 병원 이름만
   const [recommendedReason, setRecommendedReason] = useState("");
 
-  const handleClick = async () => {
+  const handleFetchHospitals = async () => {
     try {
       // 1. GET 요청으로 병원 목록 가져오기
       const response = await axios.get(ENDPOINTS.egen(region, district));
@@ -21,9 +21,10 @@ export default function HospitalList({ region, district }) {
       const parsedItems = hospitals.map((item) => ({
         name: item.dutyName,
         tel: item.dutyTel3,
-        icuInfo: [item.generalICU, item.internalMedicineICU, item.surgicalICU]
-          .filter(Boolean)
-          .join(" / "),
+        icuInfo: item.generalICU,
+        // icuInfo: [item.generalICU, item.internalMedicineICU, item.surgicalICU]
+        //   .filter(Boolean)
+        //   .join(" / "),
         fullData: item, // POST 요청에 원본 필요하므로 같이 저장
       }));
 
@@ -57,23 +58,56 @@ export default function HospitalList({ region, district }) {
     }
   };
 
+  // 외부에서 트리거하기 위해 함수 제공
+  useEffect(() => {
+    if (onFetch) {
+      onFetch.current = handleFetchHospitals;
+    }
+  }, [onFetch, region, district]);
+
   // mocking
   // const array1 = [{ name: "병원alpha" }, { name: "병원beta" }];
 
   return (
-    <div>
-      <span>Hospital List</span>
-      <button onClick={handleClick}>API 요청</button>
+    <Wrapper>
       {/* 맨 위에 올 ai추천 */}
       {recommendedName && (
         <>
-          <h3>ai추천병원</h3>
-          <HospitalItem name={recommendedName} />
+          {/* {hospitalList.find((h) => h.name === recommendedName) ? (
+            <HospitalItem
+              name={recommendedName}
+              tel={
+                hospitalList.find((h) => h.name === recommendedName)?.tel ||
+                "전화번호 없음"
+              }
+              icuInfo={
+                hospitalList.find((h) => h.name === recommendedName)?.icuInfo ||
+                "정보 없음"
+              }
+              recommended={true}
+            />
+          ) : (
+            <HospitalItem name={recommendedName} recommended={true} />
+          )} */}
+          {(() => {
+            const recommendedHospital = hospitalList.find((h) =>
+              recommendedName.includes(h.name)
+            );
+
+            return (
+              <HospitalItem
+                name={recommendedName}
+                tel={recommendedHospital?.tel || "전화번호 없음"}
+                icuInfo={recommendedHospital?.icuInfo || "정보 없음"}
+                recommended={true}
+              />
+            );
+          })()}
         </>
       )}
 
       {/* 병원목록*/}
-      <Wrapper>
+      <ListBody>
         {hospitalList.map((hospital, idx) => (
           <HospitalItem
             key={idx}
@@ -82,13 +116,23 @@ export default function HospitalList({ region, district }) {
             icuInfo={hospital.icuInfo}
           />
         ))}
-      </Wrapper>
-    </div>
+      </ListBody>
+    </Wrapper>
   );
 }
 
 const Wrapper = styled.div`
+  div {
+    display: flex;
+    /* justify-content: flex-end; */
+  }
+`;
+
+const ListBody = styled.div`
+  /* border: 1px solid black; */
+
   position: relative;
+  width: 100%;
   display: flex;
   flex-direction: column;
 `;
