@@ -97,12 +97,12 @@ function App() {
         </DeptDiv>
       )}
       {selected === "ER" && (
-        <DeptDiv>
+        <DropdownContainer>
           {/* 시/도 선택 */}
           <DropdownWrapper>
-            <DeptButton onClick={toggleStage1Dropdown}>
+            <DropdownButton onClick={toggleStage1Dropdown}>
               {regionMap[selectedRegion]} <StyleDown />
-            </DeptButton>
+            </DropdownButton>
             {stage1dropdownOpen && (
               <Dropdown>
                 {regionList.map((region, index) => (
@@ -122,10 +122,10 @@ function App() {
           </DropdownWrapper>
           {/* 군/구 선택 */}
           <DropdownWrapper>
-            <DeptButton onClick={toggleDeptDropdown}>
+            <DropdownButton onClick={toggleDeptDropdown}>
               {/* {selectedDistrict} <StyleDown /> */}
               {districtMap[selectedRegion][selectedDistrict]} <StyleDown />
-            </DeptButton>
+            </DropdownButton>
             {DeptDropdown && (
               <Dropdown>
                 {Object.keys(districtMap[selectedRegion] || {}).map(
@@ -138,18 +138,10 @@ function App() {
                     </DropdownItem>
                   )
                 )}
-                {/* {(districtMap[selectedRegion] || []).map((district, index) => (
-                <DropdownItem
-                  key={index}
-                  onClick={() => handleDistrictSelect(district)}
-                >
-                  {district}
-                </DropdownItem>
-              ))} */}
               </Dropdown>
             )}
           </DropdownWrapper>
-        </DeptDiv>
+        </DropdownContainer>
       )}
       <HospitalList region={selectedRegion} district={selectedDistrict} />
     </CommonBox>
@@ -169,6 +161,25 @@ const DeptDiv = styled.div`
   gap: "8px";
 `;
 
+const DropdownContainer = styled.div`
+  padding: 8px 16px;
+  width: 100%;
+  height: 48px;
+  box-sizing: border-box;
+  position: relative;
+
+  display: flex;
+  gap: "8px";
+  /* padding: 8px 16px;
+  width: 100%;
+  height: 48px;
+  box-sizing: border-box;
+  position: relative;
+
+  display: flex;
+  gap: "12px"; */
+`;
+
 const StyleDown = styled(DownArrow)`
   width: 10px;
   height: 7px;
@@ -186,8 +197,32 @@ const DeptButton = styled.button`
   justify-content: space-around;
 `;
 
+const DropdownButton = styled.button`
+  width: 140px;
+  height: 32px;
+  background-color: #52aef9;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+`;
+
 const DropdownWrapper = styled.div`
   position: relative;
+  margin: 0.5rem;
+`;
+
+const RegionButton = styled.button`
+  height: 2rem;
+  background-color: #52aef9;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
 `;
 
 const Dropdown = styled.div`
