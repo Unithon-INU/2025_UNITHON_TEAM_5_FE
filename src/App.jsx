@@ -9,12 +9,18 @@ import DownArrow from "./assets/DownArrow.svg?react";
 import HospitalList from "./components/HospitalList";
 
 function App() {
-  const [selected, setSelected] = useState("emergency");
+  const [selected, setSelected] = useState("ER");
   const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [stage1dropdownOpen, setStage1DropdownOpen] = useState(false);
+  const [selectedRegion, setSelectedRegion] = useState("서울특별시");
+  const [selectedDistrict, setSelectedDistrict] = useState("강남구");
   const [DeptDropdown, setDeptDropdown] = useState(false);
+
+  const toggleStage1Dropdown = () => setStage1DropdownOpen((prev) => !prev);
 
   const toggleDeptDropdown = () => setDeptDropdown((prev) => !prev);
   const togglePopup = () => setIsPopupVisible((prev) => !prev);
+
   const deptList = [
     "Internal Medicine",
     "Pediatrics",
@@ -23,13 +29,59 @@ function App() {
     "Dermatology",
   ]; //내과,소아과,정형외과,이비인후과,피부과
 
+  const regionMap = {
+    서울특별시: "Seoul-si",
+    인천광역시: "Inchoen-si",
+    광주광역시: "Gwangju-si",
+    부산광역시: "Busan-si",
+  };
+
+  const districtMap = {
+    서울특별시: {
+      강남구: "Gangnam-gu",
+      종로구: "Jongno-gu",
+      중구: "Jung-gu",
+      용산구: "Yongsan-gu",
+    },
+    인천광역시: {
+      연수구: "Yeonsu-gu",
+      부평구: "Bupyeong-gu",
+      남동구: "Namdong-gu",
+      서구: "Seo-gu",
+    },
+    부산광역시: {
+      중구: "Jung-gu",
+      서구: "Seo-gu",
+      동구: "Dong-gu",
+      해운대구: "Haeundae-gu",
+    },
+    광주광역시: {
+      동구: "Dong-gu",
+      서구: "Seo-gu",
+      남구: "Nam-gu",
+      북구: "Buk-gu",
+    },
+  };
+
+  const regionList = Object.keys(regionMap);
+
+  const handleRegionSelect = (region) => {
+    setSelectedRegion(region);
+    setStage1DropdownOpen(false);
+  };
+
+  const handleDistrictSelect = (district) => {
+    setSelectedDistrict(district);
+    setDeptDropdown(false);
+  };
+
   return (
     <CommonBox>
       <Header togglePopup={togglePopup}>
         <ToggleSwitch selected={selected} setSelected={setSelected} />
       </Header>
       <NaverMap isPopupVisible={isPopupVisible} />
-      {selected === "hospital" && (
+      {selected === "clinic" && (
         <DeptDiv>
           <DeptButton onClick={toggleDeptDropdown}>
             Select Department <StyleDown />
@@ -44,7 +96,62 @@ function App() {
           )}
         </DeptDiv>
       )}
-      <HospitalList />
+      {selected === "ER" && (
+        <DeptDiv>
+          {/* 시/도 선택 */}
+          <DropdownWrapper>
+            <DeptButton onClick={toggleStage1Dropdown}>
+              {regionMap[selectedRegion]} <StyleDown />
+            </DeptButton>
+            {stage1dropdownOpen && (
+              <Dropdown>
+                {regionList.map((region, index) => (
+                  <DropdownItem
+                    key={index}
+                    onClick={() => {
+                      setSelectedRegion(region);
+                      setSelectedDistrict(districtMap[region])[0]; // 기본 구 선택
+                      setStage1DropdownOpen(false);
+                    }}
+                  >
+                    {regionMap[region]}
+                  </DropdownItem>
+                ))}
+              </Dropdown>
+            )}
+          </DropdownWrapper>
+          {/* 군/구 선택 */}
+          <DropdownWrapper>
+            <DeptButton onClick={toggleDeptDropdown}>
+              {/* {selectedDistrict} <StyleDown /> */}
+              {districtMap[selectedRegion][selectedDistrict]} <StyleDown />
+            </DeptButton>
+            {DeptDropdown && (
+              <Dropdown>
+                {Object.keys(districtMap[selectedRegion] || {}).map(
+                  (district, index) => (
+                    <DropdownItem
+                      key={index}
+                      onClick={() => handleDistrictSelect(district)}
+                    >
+                      {districtMap[selectedRegion][district]}
+                    </DropdownItem>
+                  )
+                )}
+                {/* {(districtMap[selectedRegion] || []).map((district, index) => (
+                <DropdownItem
+                  key={index}
+                  onClick={() => handleDistrictSelect(district)}
+                >
+                  {district}
+                </DropdownItem>
+              ))} */}
+              </Dropdown>
+            )}
+          </DropdownWrapper>
+        </DeptDiv>
+      )}
+      <HospitalList region={selectedRegion} district={selectedDistrict} />
     </CommonBox>
   );
 }
@@ -57,6 +164,9 @@ const DeptDiv = styled.div`
   height: 48px;
   box-sizing: border-box;
   position: relative;
+
+  display: flex;
+  gap: "8px";
 `;
 
 const StyleDown = styled(DownArrow)`
@@ -75,6 +185,11 @@ const DeptButton = styled.button`
   align-items: center;
   justify-content: space-around;
 `;
+
+const DropdownWrapper = styled.div`
+  position: relative;
+`;
+
 const Dropdown = styled.div`
   position: absolute;
   top: 41px;

@@ -5,7 +5,7 @@ import HospitalItem from "./HospitalItem";
 
 import { ENDPOINTS } from "../constants/api";
 
-export default function HospitalList() {
+export default function HospitalList({ region, district }) {
   const [hospitalList, setHospitalList] = useState([]);
   const [recommendedName, setRecommendedName] = useState(null); // 병원 이름만
   const [recommendedReason, setRecommendedReason] = useState("");
@@ -13,7 +13,8 @@ export default function HospitalList() {
   const handleClick = async () => {
     try {
       // 1. GET 요청으로 병원 목록 가져오기
-      const response = await axios.get(ENDPOINTS.egen("서울특별시", "강남구"));
+      const response = await axios.get(ENDPOINTS.egen(region, district));
+      // const response = await axios.get(ENDPOINTS.egen("서울특별시", "강남구"));
       const hospitals = response.data.body?.items || [];
 
       // 2. 병원 목록 상태 저장용: map 사용
