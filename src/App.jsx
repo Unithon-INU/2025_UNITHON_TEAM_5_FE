@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import NaverMap from "./components/NaverMap";
 import "./App.css";
 import CommonBox from "./CommonBox";
@@ -9,14 +9,23 @@ import DownArrow from "./assets/DownArrow.svg?react";
 import HospitalList from "./components/HospitalList";
 
 function App() {
+  const regionRef = useRef(null);
+  const districtRef = useRef(null);
+  const fetchHospitalsRef = useRef(null); // 버튼으로 트리거할 함수 참조
+
   const [selected, setSelected] = useState("ER");
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [stage1dropdownOpen, setStage1DropdownOpen] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState("서울특별시");
+
+  const [stage2dropdownOpen, setStage2DropdownOpen] = useState(false);
   const [selectedDistrict, setSelectedDistrict] = useState("강남구");
   const [DeptDropdown, setDeptDropdown] = useState(false);
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const toggleStage1Dropdown = () => setStage1DropdownOpen((prev) => !prev);
+  const toggleStage2Dropdown = () => setStage2DropdownOpen((prev) => !prev);
 
   const toggleDeptDropdown = () => setDeptDropdown((prev) => !prev);
   const togglePopup = () => setIsPopupVisible((prev) => !prev);
@@ -72,8 +81,24 @@ function App() {
 
   const handleDistrictSelect = (district) => {
     setSelectedDistrict(district);
-    setDeptDropdown(false);
+    setStage2DropdownOpen(false);
   };
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (regionRef.current && !regionRef.current.contains(e.target)) {
+        setStage1DropdownOpen(false);
+      }
+      if (districtRef.current && !districtRef.current.contains(e.target)) {
+        setStage2DropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <CommonBox>
@@ -99,10 +124,10 @@ function App() {
       {selected === "ER" && (
         <DropdownContainer>
           {/* 시/도 선택 */}
-          <DropdownWrapper>
-            <DropdownButton onClick={toggleStage1Dropdown}>
+          <DropdownWrapper ref={regionRef}>
+            <RegionButton onClick={toggleStage1Dropdown} $isNarrow={true}>
               {regionMap[selectedRegion]} <StyleDown />
-            </DropdownButton>
+            </RegionButton>
             {stage1dropdownOpen && (
               <Dropdown>
                 {regionList.map((region, index) => (
@@ -110,7 +135,7 @@ function App() {
                     key={index}
                     onClick={() => {
                       setSelectedRegion(region);
-                      setSelectedDistrict(districtMap[region])[0]; // 기본 구 선택
+                      setSelectedDistrict(Object.keys(districtMap[region])[0]); // 기본 구 선택
                       setStage1DropdownOpen(false);
                     }}
                   >
@@ -121,12 +146,12 @@ function App() {
             )}
           </DropdownWrapper>
           {/* 군/구 선택 */}
-          <DropdownWrapper>
-            <DropdownButton onClick={toggleDeptDropdown}>
+          <DropdownWrapper ref={districtRef}>
+            <RegionButton onClick={toggleStage2Dropdown}>
               {/* {selectedDistrict} <StyleDown /> */}
               {districtMap[selectedRegion][selectedDistrict]} <StyleDown />
-            </DropdownButton>
-            {DeptDropdown && (
+            </RegionButton>
+            {stage2dropdownOpen && (
               <Dropdown>
                 {Object.keys(districtMap[selectedRegion] || {}).map(
                   (district, index) => (
@@ -141,9 +166,26 @@ function App() {
               </Dropdown>
             )}
           </DropdownWrapper>
+
+          <FetchButton
+            disabled={isLoading}
+            onClick={async () => {
+              if (fetchHospitalsRef.current) {
+                setIsLoading(true);
+                await fetchHospitalsRef.current();
+                setIsLoading(false);
+              }
+            }}
+          >
+            {isLoading ? "불러오는 중..." : "API 요청"}
+          </FetchButton>
         </DropdownContainer>
       )}
-      <HospitalList region={selectedRegion} district={selectedDistrict} />
+      <HospitalList
+        region={selectedRegion}
+        district={selectedDistrict}
+        onFetch={fetchHospitalsRef}
+      />
     </CommonBox>
   );
 }
@@ -158,10 +200,12 @@ const DeptDiv = styled.div`
   position: relative;
 
   display: flex;
-  gap: "8px";
+  gap: 8px;
 `;
 
 const DropdownContainer = styled.div`
+  /* border: 1px solid black; */
+
   padding: 8px 16px;
   width: 100%;
   height: 48px;
@@ -169,7 +213,7 @@ const DropdownContainer = styled.div`
   position: relative;
 
   display: flex;
-  gap: "8px";
+  align-items: center;
   /* padding: 8px 16px;
   width: 100%;
   height: 48px;
@@ -177,7 +221,7 @@ const DropdownContainer = styled.div`
   position: relative;
 
   display: flex;
-  gap: "12px"; */
+  */
 `;
 
 const StyleDown = styled(DownArrow)`
@@ -197,24 +241,15 @@ const DeptButton = styled.button`
   justify-content: space-around;
 `;
 
-const DropdownButton = styled.button`
-  width: 140px;
-  height: 32px;
-  background-color: #52aef9;
-  color: #ffffff;
-  border: none;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-`;
-
 const DropdownWrapper = styled.div`
+  /* border: 1px solid black; */
   position: relative;
   margin: 0.5rem;
 `;
 
 const RegionButton = styled.button`
+  /* width: 140px; */
+  width: ${({ $isNarrow }) => ($isNarrow ? "110px" : "140px")};
   height: 2rem;
   background-color: #52aef9;
   color: #ffffff;
@@ -243,5 +278,22 @@ const DropdownItem = styled.div`
 
   &:hover {
     background-color: #f1f1f1;
+  }
+`;
+
+const FetchButton = styled.button`
+  height: 2rem;
+  padding: 0 16px;
+  margin-left: 1rem;
+  background-color: white;
+  color: #52aef9;
+  border: 2px solid #52aef9;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: ${({ disabled }) => (disabled ? "not-allowed" : "pointer")};
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: #c5e5fe;
   }
 `;
