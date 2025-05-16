@@ -57,6 +57,7 @@ const MapContainer = styled.div`
   height: 400px;
   border: 1px solid #ccc;
   position: relative;
+  box-sizing: border-box;
 `
 
 const Popup = styled.div`

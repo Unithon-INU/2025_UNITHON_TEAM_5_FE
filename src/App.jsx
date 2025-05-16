@@ -106,7 +106,7 @@ function App() {
         <ToggleSwitch selected={selected} setSelected={setSelected} />
       </Header>
       <NaverMap isPopupVisible={isPopupVisible} />
-      {selected === "clinic" && (
+      {selected === "Clinic" && (
         <DeptDiv>
           <DeptButton onClick={toggleDeptDropdown}>
             Select Department <StyleDown />
@@ -205,7 +205,7 @@ const DeptDiv = styled.div`
 
 const DropdownContainer = styled.div`
   /* border: 1px solid black; */
-
+ 
   padding: 8px 16px;
   width: 100%;
   height: 48px;
@@ -239,6 +239,10 @@ const DeptButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: space-around;
+  @media (max-width: 375px) {
+    width: 100px;
+    font-size: 12px;
+}
 `;
 
 const DropdownWrapper = styled.div`
@@ -250,6 +254,11 @@ const DropdownWrapper = styled.div`
 const RegionButton = styled.button`
   /* width: 140px; */
   width: ${({ $isNarrow }) => ($isNarrow ? "110px" : "140px")};
+  @media (max-width: 375px) {
+    width: 100px;
+    font-size: 12px;
+
+}
   height: 2rem;
   background-color: #52aef9;
   color: #ffffff;

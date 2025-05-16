@@ -26,6 +26,7 @@ const HeaderBox = styled.div`
   align-items: center;
   display: flex;
   justify-content: space-between; 
+  z-index: 2;
 `
 
 const GlobeIcon = styled(Globe)`
