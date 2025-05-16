@@ -177,7 +177,7 @@ function App() {
               }
             }}
           >
-            {isLoading ? "불러오는 중..." : "API 요청"}
+            {isLoading ? "Loading..." : "Request"}
           </FetchButton>
         </DropdownContainer>
       )}
