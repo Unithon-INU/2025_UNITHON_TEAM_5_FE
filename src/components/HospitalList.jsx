@@ -97,8 +97,8 @@ export default function HospitalList({ region, district, onFetch }) {
             return (
               <HospitalItem
                 name={recommendedName}
-                tel={recommendedHospital?.tel || "전화번호 없음"}
-                icuInfo={recommendedHospital?.icuInfo || "정보 없음"}
+                tel={recommendedHospital?.tel || "N/A"}
+                icuInfo={recommendedHospital?.icuInfo || "N/A"}
                 recommended={true}
               />
             );
@@ -122,9 +122,12 @@ export default function HospitalList({ region, district, onFetch }) {
 }
 
 const Wrapper = styled.div`
+ 
+
   div {
     display: flex;
     /* justify-content: flex-end; */
+   
   }
 `;
 

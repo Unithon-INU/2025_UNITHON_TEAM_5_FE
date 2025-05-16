@@ -38,7 +38,7 @@ const Wrapper = styled.div`
 
 const FirstArea = styled.div`
   padding: 1.25rem;
-
+  width: 70%;
   display: flex;
   flex-direction: column;
   justify-content: center;

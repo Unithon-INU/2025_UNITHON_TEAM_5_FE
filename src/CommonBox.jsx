@@ -5,8 +5,8 @@ const CommonBox = styled.div`
     min-width: 320px;
     max-width: 480px;
     margin: 0 auto;
-    border-left: solid 1px black;
-    border-right: solid 1px black;
+    border-left:solid 1px #bdbdbd;
+    border-right:solid 1px #bdbdbd;
 
     position: relative; 
 
