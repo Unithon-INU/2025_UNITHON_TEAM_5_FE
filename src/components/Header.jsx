@@ -4,7 +4,7 @@ import Globe from '../assets/Globe.svg?react';
 
 function Header({ children, togglePopup }) {
   return (
-    <HeaderBox>
+    <HeaderBox> {/*현재 state에 어느 모드에서든 패치해온게 다른 모드로 가도 남아있어서 전역으로 빼고 토글스위치바뀌면 클린시키는식으로해야할듯*/}
       <GlobeIcon width={30} height={30} onClick={togglePopup} />
       <ChildrenWrapper>{children}</ChildrenWrapper>
     </HeaderBox>

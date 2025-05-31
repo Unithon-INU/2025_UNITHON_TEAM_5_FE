@@ -119,6 +119,9 @@ function App() {
               ))}
             </Dropdown>
           )}
+          <MylocateDiv>
+              My location :  119, Acadeaaaaaaaaaaaaaaaaaaaaaaaaa
+          </MylocateDiv>
         </DeptDiv>
       )}
       {selected === "ER" && (
@@ -198,9 +201,10 @@ const DeptDiv = styled.div`
   height: 48px;
   box-sizing: border-box;
   position: relative;
-
+  align-items: center;
   display: flex;
   gap: 8px;
+  justify-content: space-between;
 `;
 
 const DropdownContainer = styled.div`
@@ -230,7 +234,7 @@ const StyleDown = styled(DownArrow)`
 `;
 
 const DeptButton = styled.button`
-  width: 140px;
+  width: 165px;
   height: 32px;
   background-color: #52aef9;
   color: #ffffff;
@@ -239,8 +243,9 @@ const DeptButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: space-around;
-  @media (max-width: 375px) {
-    width: 100px;
+  padding: 0 16px;
+  @media (max-width: 400px) {
+    
     font-size: 12px;
 }
 `;
@@ -254,7 +259,7 @@ const DropdownWrapper = styled.div`
 const RegionButton = styled.button`
   /* width: 140px; */
   width: ${({ $isNarrow }) => ($isNarrow ? "110px" : "140px")};
-  @media (max-width: 375px) {
+  @media (max-width: 400px) {
     width: 100px;
     font-size: 12px;
 
@@ -284,7 +289,6 @@ const DropdownItem = styled.div`
   padding: 8px;
   font-size: 12px;
   cursor: pointer;
-
   &:hover {
     background-color: #f1f1f1;
   }
@@ -306,3 +310,12 @@ const FetchButton = styled.button`
     background-color: #c5e5fe;
   }
 `;
+const MylocateDiv =styled.div`
+  font-size: 14px;
+  font-family: 'Kanit', sans-serif;
+  font-weight: 900;
+  width: 153px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`

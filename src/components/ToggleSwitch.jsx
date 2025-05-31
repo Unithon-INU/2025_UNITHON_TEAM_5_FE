@@ -29,14 +29,15 @@ const Wrapper = styled.div`
 
 const Tab = styled.button`
   flex: 1;
-  z-index: 1;
+  z-index: 5;
   border: none;
   border-radius: 17px;
   background: transparent;
   color: ${({ active }) => (active ? "#000" : "#fff")};
-  font-weight: 600;
+  font-weight: 900;
   cursor: pointer;
   transition: color 0.3s ease;
+  
 `;
 
 const Slider = styled.div`
