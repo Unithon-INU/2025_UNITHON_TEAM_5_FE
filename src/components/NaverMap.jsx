@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import styled from 'styled-components'
+import Reload from "../assets/reload.svg?react";
+import Full from "../assets/full.svg?react";
+
 
 const NaverMap = ({ isPopupVisible }) => {
   const mapRef = useRef(null)
@@ -26,6 +29,10 @@ const NaverMap = ({ isPopupVisible }) => {
 
   return (
     <MapContainer ref={mapRef}>
+      
+      <TopCenterButton><Reload/>Search nearby</TopCenterButton>
+      <TopCenterIcon>  <Full style={{width:'32px', height:'32px'}}/> </TopCenterIcon>
+     
       {isPopupVisible && (
         <Popup style={{ top: popupPosition.top, left: popupPosition.left }}>
           <LanguageButton
@@ -89,4 +96,35 @@ const SelectedLanguage = styled.div`
   margin-top: 10px;
   font-size: 12px;
   color: #333;
+`
+const TopCenterButton = styled.button`
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  padding: 8px 32px;
+  background-color: #fff;
+  font-family: 'Kanit', sans-serif;
+  font-weight: 900;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  font-size: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 201px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: 35px;
+`
+const TopCenterIcon = styled.div`
+  position: absolute;
+  top: 10px;
+  right: 0;
+  transform: translateX(-50%);
+  z-index: 1;
+  
+ 
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 `
