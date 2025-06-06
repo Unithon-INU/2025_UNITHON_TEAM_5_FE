@@ -1,38 +1,98 @@
-import { useEffect, useRef, useState } from 'react'
-import styled from 'styled-components'
+import { useEffect, useRef, useState } from 'react';
+import styled from 'styled-components';
 import Reload from "../assets/reload.svg?react";
 import Full from "../assets/full.svg?react";
 
-
 const NaverMap = ({ isPopupVisible }) => {
-  const mapRef = useRef(null)
-  const [popupPosition, setPopupPosition] = useState({ top: 5, left: 14 }); 
-  const [selectedLanguage, setSelectedLanguage] = useState('kor') // 나중에 전역변수로바꾸는게나을듯
+  const mapElementRef = useRef(null);
+  const mapRef = useRef(null);
+  const markerRef = useRef(null);
+
+  const [popupPosition, setPopupPosition] = useState({ top: 5, left: 14 });
+  const [selectedLanguage, setSelectedLanguage] = useState('kor');
 
   useEffect(() => {
-    if (!window.naver || !mapRef.current) return
+    if (!window.naver || !mapElementRef.current) return;
 
-    const map = new window.naver.maps.Map(mapRef.current, {
-      center: new window.naver.maps.LatLng(37.3750, 126.6322), 
-      zoom: 10,
-    })
+    // 🔹 위치 요청
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const userLat = position.coords.latitude;
+        const userLng = position.coords.longitude;
 
+        const userLocation = new window.naver.maps.LatLng(userLat, userLng);
+
+        // 지도 생성
+        const map = new window.naver.maps.Map(mapElementRef.current, {
+          center: userLocation,
+          zoom: 13,
+        });
+        mapRef.current = map;
+
+        // 마커 생성
+        const marker = new window.naver.maps.Marker({
+          position: userLocation,
+          map: map,
+        });
+        markerRef.current = marker;
+
+        // InfoWindow 예시 (선택)
+        const infoWindow = new window.naver.maps.InfoWindow({
+          content: '<div style="padding:8px;">현재 위치입니다</div>'
+        });
+
+        window.naver.maps.Event.addListener(marker, 'click', function () {
+          if (infoWindow.getMap()) {
+            infoWindow.close();
+          } else {
+            infoWindow.open(map, marker);
+          }
+        });
+
+        // 지도 클릭 시 마커 이동
+        window.naver.maps.Event.addListener(map, 'click', function (e) {
+          const lat = e.coord.lat();
+          const lng = e.coord.lng();
+          console.log('📍 마커 이동 - 위도:', lat, '경도:', lng);
+          marker.setPosition(e.coord);
+          infoWindow.close();
+        });
+      },
+      (error) => {
+        console.error('위치 정보 가져오기 실패:', error);
+        // fallback center 사용 (예: 안산시)
+        const fallbackCenter = new window.naver.maps.LatLng(37.3750, 126.6322);
+
+        const map = new window.naver.maps.Map(mapElementRef.current, {
+          center: fallbackCenter,
+          zoom: 10,
+        });
+        mapRef.current = map;
+
+        const marker = new window.naver.maps.Marker({
+          position: fallbackCenter,
+          map: map,
+        });
+        markerRef.current = marker;
+      }
+    );
+  }, []);
+
+  useEffect(() => {
     if (isPopupVisible) {
-      setPopupPosition({ top: 5, left: 14 }); 
+      setPopupPosition({ top: 5, left: 14 });
     }
-    
+  }, [isPopupVisible]);
 
-  }, [isPopupVisible])
   const handleLanguageSelect = (language) => {
-    setSelectedLanguage(language) 
-  }
+    setSelectedLanguage(language);
+  };
 
   return (
-    <MapContainer ref={mapRef}>
-      
-      <TopCenterButton><Reload/>Search nearby</TopCenterButton>
-      <TopCenterIcon>  <Full style={{width:'32px', height:'32px'}}/> </TopCenterIcon>
-     
+    <MapContainer ref={mapElementRef}>
+      <TopCenterButton><Reload />Search nearby</TopCenterButton>
+      <TopCenterIcon><Full style={{ width: '32px', height: '32px' }} /></TopCenterIcon>
+
       {isPopupVisible && (
         <Popup style={{ top: popupPosition.top, left: popupPosition.left }}>
           <LanguageButton
@@ -54,10 +114,14 @@ const NaverMap = ({ isPopupVisible }) => {
         </Popup>
       )}
     </MapContainer>
-  )
-}
+  );
+};
 
-export default NaverMap
+export default NaverMap;
+
+// 스타일 컴포넌트는 그대로 유지
+
+
 
 const MapContainer = styled.div`
   width: 100%;
