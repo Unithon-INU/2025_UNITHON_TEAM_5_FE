@@ -5,30 +5,40 @@ import CommonBox from "./CommonBox";
 import Header from "./components/Header";
 import ToggleSwitch from "./components/ToggleSwitch";
 import styled from "styled-components";
-import DownArrow from "./assets/DownArrow.svg?react";
+
 import HospitalList from "./components/HospitalList";
+import HospitalItemBody from "./components/HospitalItemBody";
+import BottomSheet from "./components/BottomSheet";
+
+// icons
+import DownArrow from "./assets/DownArrow.svg?react";
+import PinIcon from "./assets/PinIcon.svg";
+import ClockIcon from "./assets/ClockIcon.svg";
+import ERIcon from "./assets/ERIcon.svg";
+import PhoneIcon from "./assets/PhoneIcon.svg";
+import WebIcon from "./assets/WebIcon.svg";
 
 function App() {
   const regionRef = useRef(null);
   const districtRef = useRef(null);
-  const fetchHospitalsRef = useRef(null); // 버튼으로 트리거할 함수 참조
+  const fetchHospitalsRef = useRef(null);
 
   const [selected, setSelected] = useState("ER");
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [stage1dropdownOpen, setStage1DropdownOpen] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState("서울특별시");
-
   const [stage2dropdownOpen, setStage2DropdownOpen] = useState(false);
   const [selectedDistrict, setSelectedDistrict] = useState("강남구");
   const [DeptDropdown, setDeptDropdown] = useState(false);
-
   const [isLoading, setIsLoading] = useState(false);
 
   const toggleStage1Dropdown = () => setStage1DropdownOpen((prev) => !prev);
   const toggleStage2Dropdown = () => setStage2DropdownOpen((prev) => !prev);
-
   const toggleDeptDropdown = () => setDeptDropdown((prev) => !prev);
   const togglePopup = () => setIsPopupVisible((prev) => !prev);
+
+  // Bottom Sheet 전체 열기/닫기
+  const [showHospitalDetail, setShowHospitalDetail] = useState(false);
 
   const deptList = [
     "Internal Medicine",
@@ -36,7 +46,7 @@ function App() {
     "Orthopedics",
     "Otolaryngology",
     "Dermatology",
-  ]; //내과,소아과,정형외과,이비인후과,피부과
+  ];
 
   const regionMap = {
     서울특별시: "Seoul-si",
@@ -78,7 +88,6 @@ function App() {
     setSelectedRegion(region);
     setStage1DropdownOpen(false);
   };
-
   const handleDistrictSelect = (district) => {
     setSelectedDistrict(district);
     setStage2DropdownOpen(false);
@@ -106,24 +115,23 @@ function App() {
         <ToggleSwitch selected={selected} setSelected={setSelected} />
       </Header>
       <NaverMap isPopupVisible={isPopupVisible} />
+
       {selected === "Clinic" && (
         <DeptDiv>
           <DeptButton onClick={toggleDeptDropdown}>
             Select Department <StyleDown />
           </DeptButton>
-
           {DeptDropdown && (
             <Dropdown>
-              {deptList.map((dept, index) => (
-                <DropdownItem key={index}>{dept}</DropdownItem>
+              {deptList.map((dept, idx) => (
+                <DropdownItem key={idx}>{dept}</DropdownItem>
               ))}
             </Dropdown>
           )}
-          <MylocateDiv>
-              My location :  119, Acadeaaaaaaaaaaaaaaaaaaaaaaaaa
-          </MylocateDiv>
+          <MylocateDiv>My location : 119, Acadeaaaaaaaaa</MylocateDiv>
         </DeptDiv>
       )}
+
       {selected === "ER" && (
         <DropdownContainer>
           {/* 시/도 선택 */}
@@ -133,12 +141,12 @@ function App() {
             </RegionButton>
             {stage1dropdownOpen && (
               <Dropdown>
-                {regionList.map((region, index) => (
+                {regionList.map((region, idx) => (
                   <DropdownItem
-                    key={index}
+                    key={idx}
                     onClick={() => {
                       setSelectedRegion(region);
-                      setSelectedDistrict(Object.keys(districtMap[region])[0]); // 기본 구 선택
+                      setSelectedDistrict(Object.keys(districtMap[region])[0]);
                       setStage1DropdownOpen(false);
                     }}
                   >
@@ -148,18 +156,18 @@ function App() {
               </Dropdown>
             )}
           </DropdownWrapper>
+
           {/* 군/구 선택 */}
           <DropdownWrapper ref={districtRef}>
             <RegionButton onClick={toggleStage2Dropdown}>
-              {/* {selectedDistrict} <StyleDown /> */}
               {districtMap[selectedRegion][selectedDistrict]} <StyleDown />
             </RegionButton>
             {stage2dropdownOpen && (
               <Dropdown>
                 {Object.keys(districtMap[selectedRegion] || {}).map(
-                  (district, index) => (
+                  (district, idx) => (
                     <DropdownItem
-                      key={index}
+                      key={idx}
                       onClick={() => handleDistrictSelect(district)}
                     >
                       {districtMap[selectedRegion][district]}
@@ -182,13 +190,81 @@ function App() {
           >
             {isLoading ? "Loading..." : "Request"}
           </FetchButton>
+
+          {/* 바텀 시트를 열려면 이 버튼을 누름 */}
+          <ShowDetailButton onClick={() => setShowHospitalDetail(true)}>
+            상세
+          </ShowDetailButton>
         </DropdownContainer>
       )}
+
       <HospitalList
         region={selectedRegion}
         district={selectedDistrict}
         onFetch={fetchHospitalsRef}
       />
+
+      {/* isOpen prop: true이면 바텀 시트가 화면에 나타남 */}
+      {/* <HospitalItemBody
+        isOpen={showHospitalDetail}
+        onClose={() => setShowHospitalDetail(false)}
+      /> */}
+      <BottomSheet
+        isOpen={showHospitalDetail}
+        onClose={() => setShowHospitalDetail(false)}
+      >
+        <ImageArea>
+          <MainImage />
+          <MainImage />
+        </ImageArea>
+        <InfoArea>
+          <TypeArea>
+            <HospitalTypeER>ER</HospitalTypeER>
+            <HospitalTypeGeneral>Clinic</HospitalTypeGeneral>
+          </TypeArea>
+          <TitleArea>
+            <span>Seoul-University Hospital</span>
+            <StatusOpen>OPEN NOW</StatusOpen>
+            {/* <StatusClosed>CLOSED</StatusClosed> */}
+          </TitleArea>
+          <span>서울대학교 병원 / Seoul Daehakgyo Byeongwon</span>
+          <DetailsArea>
+            <InfoRow>
+              <img src={PinIcon} />
+              서울 종로구 대학로 101 (6.2km)
+            </InfoRow>
+            <InfoRow>
+              <img src={ClockIcon} />
+              <span>Open today :</span>
+              <EmphasizedText>9 AM - 10 PM (Clinic)</EmphasizedText>
+            </InfoRow>
+
+            <OpeningHours>
+              <EmphasizedText>Opening Hours (Clinic) </EmphasizedText>
+              <p>Mon - Fri : 9:00 AM – 6:00 PM </p>
+              <p>Saturday : 9:00 AM – 1:00 PM </p>Sunday : Closed (Regular day
+              off)
+            </OpeningHours>
+            <InfoRow style={{ marginLeft: "-2px" }}>
+              <img src={ERIcon} style={{ marginTop: "-4px" }} />
+              <span style={{ color: "#FF714A" }}>ER Available</span>
+            </InfoRow>
+            <InfoRow>
+              <img src={PhoneIcon} style={{ width: "14px" }} />
+              02-111-2221
+            </InfoRow>
+            <InfoRow>
+              <img src={WebIcon} />
+              <a
+                href="https://www.snuh.org/
+"
+              >
+                https://www.snuh.org/
+              </a>
+            </InfoRow>
+          </DetailsArea>
+        </InfoArea>
+      </BottomSheet>
     </CommonBox>
   );
 }
@@ -201,31 +277,19 @@ const DeptDiv = styled.div`
   height: 48px;
   box-sizing: border-box;
   position: relative;
-  align-items: center;
   display: flex;
+  align-items: center;
   gap: 8px;
   justify-content: space-between;
 `;
 
 const DropdownContainer = styled.div`
-  /* border: 1px solid black; */
- 
   padding: 8px 16px;
   width: 100%;
   height: 48px;
   box-sizing: border-box;
-  position: relative;
-
   display: flex;
   align-items: center;
-  /* padding: 8px 16px;
-  width: 100%;
-  height: 48px;
-  box-sizing: border-box;
-  position: relative;
-
-  display: flex;
-  */
 `;
 
 const StyleDown = styled(DownArrow)`
@@ -237,7 +301,7 @@ const DeptButton = styled.button`
   width: 165px;
   height: 32px;
   background-color: #52aef9;
-  color: #ffffff;
+  color: #fff;
   border: none;
   border-radius: 12px;
   display: flex;
@@ -245,28 +309,24 @@ const DeptButton = styled.button`
   justify-content: space-around;
   padding: 0 16px;
   @media (max-width: 400px) {
-    
     font-size: 12px;
-}
+  }
 `;
 
 const DropdownWrapper = styled.div`
-  /* border: 1px solid black; */
   position: relative;
   margin: 0.5rem;
 `;
 
 const RegionButton = styled.button`
-  /* width: 140px; */
   width: ${({ $isNarrow }) => ($isNarrow ? "110px" : "140px")};
   @media (max-width: 400px) {
     width: 100px;
     font-size: 12px;
-
-}
+  }
   height: 2rem;
   background-color: #52aef9;
-  color: #ffffff;
+  color: #fff;
   border: none;
   border-radius: 12px;
   display: flex;
@@ -278,7 +338,7 @@ const Dropdown = styled.div`
   position: absolute;
   top: 41px;
   width: 140px;
-  background: white;
+  background: #fff;
   border: 1px solid #ccc;
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
@@ -298,24 +358,217 @@ const FetchButton = styled.button`
   height: 2rem;
   padding: 0 16px;
   margin-left: 1rem;
-  background-color: white;
+  background-color: #fff;
   color: #52aef9;
   border: 2px solid #52aef9;
   border-radius: 12px;
   font-weight: bold;
   cursor: ${({ disabled }) => (disabled ? "not-allowed" : "pointer")};
   transition: background-color 0.2s ease;
-
   &:hover {
     background-color: #c5e5fe;
   }
 `;
-const MylocateDiv =styled.div`
+
+const ShowDetailButton = styled.button`
+  height: 2rem;
+  padding: 0 12px;
+  margin-left: 0.5rem;
+  background-color: #f2f2f2;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  &:hover {
+    background-color: #e0e0e0;
+  }
+`;
+
+const MylocateDiv = styled.div`
   font-size: 14px;
-  font-family: 'Kanit', sans-serif;
+  font-family: "Kanit", sans-serif;
   font-weight: 900;
   width: 153px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-`
+`;
+
+// 바텀 시트 관련 UI
+
+const ImageArea = styled.div`
+  width: 100%;
+  height: 129px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+`;
+
+const MainImage = styled.div`
+  width: 194px;
+  height: 129px;
+  background: #eee;
+  /* border-radius: 16px; */
+  /* margin: 40px auto 0 auto; */
+  background-image: url("https://via.placeholder.com/199x129");
+  background-size: cover;
+  background-position: center;
+`;
+
+const HospitalName = styled.div`
+  /* font-family: "Kanit", sans-serif; */
+  font-size: 24px;
+  font-weight: 700;
+  color: #3a78eb;
+  margin: 2.5rem 0 0 1.5rem;
+`;
+
+const HospitalTypeGeneral = styled.div`
+  border: none;
+  background-color: #3a78eb;
+
+  width: 68px;
+  height: 24px;
+
+  color: white;
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 500;
+  /* margin: 2.5rem 0 0 1.5rem; */
+`;
+
+const HospitalTypeER = styled.div`
+  border: none;
+  background-color: #ff714a;
+
+  width: 68px;
+  height: 24px;
+
+  color: white;
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 500;
+`;
+
+const InfoArea = styled.div`
+  width: 100%;
+  /* height: 100px; */
+  padding: 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* align-items: center; */
+`;
+
+const TypeArea = styled.div`
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin: 6px 4px;
+  gap: 12px;
+`;
+
+const TitleArea = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 6px 0 6px 4px;
+
+  span {
+    color: #3a78eb;
+    font-family: Roboto;
+    font-size: 1.25rem;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 1.25rem; /* 100% */
+  }
+`;
+
+const StatusOpen = styled.div`
+  border-radius: 1rem;
+  border: 0.75px solid #3a78eb;
+  background: #f9f9f9;
+  width: 5.75rem;
+  height: 1.5rem;
+  margin-right: 4px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* text-align: center; */
+
+  color: #3a78eb;
+  font-family: Inter;
+  font-size: 0.75rem;
+  font-style: normal;
+  font-weight: 700;
+`;
+
+const StatusClosed = styled.div`
+  border-radius: 1rem;
+  border: 0.75px solid #565656;
+  background: #f9f9f9;
+  width: 5.75rem;
+  height: 1.5rem;
+  margin-right: 4px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* text-align: center; */
+
+  color: #565656;
+  font-family: Inter;
+  font-size: 0.75rem;
+  font-style: normal;
+  font-weight: 700;
+`;
+
+const DetailsArea = styled.div`
+  width: 100%;
+  height: 100%;
+  margin: 10px 4px;
+  /* padding: 0 16px; */
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+`;
+
+const InfoRow = styled.div`
+  display: flex;
+  align-items: center;
+  margin: 6px 0;
+  font-size: 14px;
+  color: #565656;
+
+  gap: 0.5rem;
+`;
+
+const EmphasizedText = styled.span`
+  font-weight: bold;
+  color: #3a78eb;
+`;
+
+const OpeningHours = styled.div`
+  /* font-family: "Kanit", sans-serif; */
+  font-size: 14px;
+  font-weight: 500;
+  color: #565656;
+  margin: 0.5rem 22px;
+
+  p {
+    margin: 4px 0;
+  }
+`;
