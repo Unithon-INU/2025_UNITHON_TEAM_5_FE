@@ -37,6 +37,23 @@ function App() {
   const toggleDeptDropdown = () => setDeptDropdown((prev) => !prev);
   const togglePopup = () => setIsPopupVisible((prev) => !prev);
 
+  // 바텀 시트에 들어갈 상태
+
+  const [hospitalDetail, setHospitalDetail] = useState({
+    nameTranslated: "Seoul-University Hospital", // 번역된 병원 이름
+    nameOriginal: "서울대학교 병원 / Seoul Daehakgyo Byeongwon", // 한글 + 영문 로마자
+    address: "서울 종로구 대학로 101 (6.2km)", // 주소
+    openToday: "9 AM - 10 PM (Clinic)", // 오늘 영업시간
+    openingHours: {
+      weekday: "Mon - Fri : 9:00 AM – 6:00 PM",
+      saturday: "Saturday : 9:00 AM – 1:00 PM",
+      sunday: "Sunday : Closed (Regular day off)",
+    },
+    hasER: true, // 응급실 유무
+    phone: "02-111-2221", // 전화번호
+    website: "https://www.snuh.org/", // 홈페이지
+  });
+
   // Bottom Sheet 전체 열기/닫기
   const [showHospitalDetail, setShowHospitalDetail] = useState(false);
 
@@ -217,51 +234,84 @@ function App() {
           <MainImage />
           <MainImage />
         </ImageArea>
+
         <InfoArea>
           <TypeArea>
             <HospitalTypeER>ER</HospitalTypeER>
             <HospitalTypeGeneral>Clinic</HospitalTypeGeneral>
           </TypeArea>
-          <TitleArea>
-            <span>Seoul-University Hospital</span>
-            <StatusOpen>OPEN NOW</StatusOpen>
-            {/* <StatusClosed>CLOSED</StatusClosed> */}
-          </TitleArea>
-          <span>서울대학교 병원 / Seoul Daehakgyo Byeongwon</span>
-          <DetailsArea>
-            <InfoRow>
-              <img src={PinIcon} />
-              서울 종로구 대학로 101 (6.2km)
-            </InfoRow>
-            <InfoRow>
-              <img src={ClockIcon} />
-              <span>Open today :</span>
-              <EmphasizedText>9 AM - 10 PM (Clinic)</EmphasizedText>
-            </InfoRow>
 
-            <OpeningHours>
-              <EmphasizedText>Opening Hours (Clinic) </EmphasizedText>
-              <p>Mon - Fri : 9:00 AM – 6:00 PM </p>
-              <p>Saturday : 9:00 AM – 1:00 PM </p>Sunday : Closed (Regular day
-              off)
-            </OpeningHours>
-            <InfoRow style={{ marginLeft: "-2px" }}>
-              <img src={ERIcon} style={{ marginTop: "-4px" }} />
-              <span style={{ color: "#FF714A" }}>ER Available</span>
-            </InfoRow>
-            <InfoRow>
-              <img src={PhoneIcon} style={{ width: "14px" }} />
-              02-111-2221
-            </InfoRow>
-            <InfoRow>
-              <img src={WebIcon} />
-              <a
-                href="https://www.snuh.org/
-"
-              >
-                https://www.snuh.org/
-              </a>
-            </InfoRow>
+          {/* 번역된 병원명 */}
+          {hospitalDetail.nameTranslated && (
+            <TitleArea>
+              <span>{hospitalDetail.nameTranslated}</span>
+              <StatusOpen>OPEN NOW</StatusOpen>
+              {/* <StatusClosed>CLOSED</StatusClosed> */}
+            </TitleArea>
+          )}
+
+          {/* 병원 한글명 / 영문명 */}
+          {hospitalDetail.nameOriginal && (
+            <span>{hospitalDetail.nameOriginal}</span>
+          )}
+
+          <DetailsArea>
+            {/* 주소 */}
+            {hospitalDetail.address && (
+              <InfoRow>
+                <img src={PinIcon} />
+                {hospitalDetail.address}
+              </InfoRow>
+            )}
+
+            {/* 오늘의 운영 시간 */}
+            {hospitalDetail.openToday && (
+              <InfoRow>
+                <img src={ClockIcon} />
+                <span>Open today :</span>
+                <EmphasizedText>{hospitalDetail.openToday}</EmphasizedText>
+              </InfoRow>
+            )}
+
+            {/* 요일별 운영 시간 */}
+            {hospitalDetail.openingHours && (
+              <OpeningHours>
+                <EmphasizedText>Opening Hours (Clinic)</EmphasizedText>
+                {hospitalDetail.openingHours.weekday && (
+                  <p>{hospitalDetail.openingHours.weekday}</p>
+                )}
+                {hospitalDetail.openingHours.saturday && (
+                  <p>{hospitalDetail.openingHours.saturday}</p>
+                )}
+                {hospitalDetail.openingHours.sunday && (
+                  <p>{hospitalDetail.openingHours.sunday}</p>
+                )}
+              </OpeningHours>
+            )}
+
+            {/* 응급실 가능 여부 */}
+            {hospitalDetail.hasER && (
+              <InfoRow style={{ marginLeft: "-2px" }}>
+                <img src={ERIcon} style={{ marginTop: "-4px" }} />
+                <span style={{ color: "#FF714A" }}>ER Available</span>
+              </InfoRow>
+            )}
+
+            {/* 전화번호 */}
+            {hospitalDetail.phone && (
+              <InfoRow>
+                <img src={PhoneIcon} style={{ width: "14px" }} />
+                {hospitalDetail.phone}
+              </InfoRow>
+            )}
+
+            {/* 웹사이트 */}
+            {hospitalDetail.website && (
+              <InfoRow>
+                <img src={WebIcon} />
+                <a href={hospitalDetail.website}>{hospitalDetail.website}</a>
+              </InfoRow>
+            )}
           </DetailsArea>
         </InfoArea>
       </BottomSheet>

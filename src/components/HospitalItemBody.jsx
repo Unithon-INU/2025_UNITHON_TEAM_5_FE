@@ -1,3 +1,4 @@
+// App.jsx
 import React, { useState, useRef, useLayoutEffect, useEffect } from "react";
 import styled from "styled-components";
 
