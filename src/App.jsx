@@ -57,6 +57,11 @@ function App() {
   // Bottom Sheet 전체 열기/닫기
   const [showHospitalDetail, setShowHospitalDetail] = useState(false);
 
+  const handleMarkerClick = () => {
+    console.log("마커가 클릭되었습니다!");
+    setShowHospitalDetail(true);
+  };
+
   const deptList = [
     "Internal Medicine",
     "Pediatrics",
@@ -131,7 +136,10 @@ function App() {
       <Header togglePopup={togglePopup}>
         <ToggleSwitch selected={selected} setSelected={setSelected} />
       </Header>
-      <NaverMap isPopupVisible={isPopupVisible} />
+      <NaverMap
+        isPopupVisible={isPopupVisible}
+        onMarkerClick={handleMarkerClick}
+      />
 
       {selected === "Clinic" && (
         <DeptDiv>
@@ -209,9 +217,9 @@ function App() {
           </FetchButton>
 
           {/* 바텀 시트를 열려면 이 버튼을 누름 */}
-          <ShowDetailButton onClick={() => setShowHospitalDetail(true)}>
+          {/* <ShowDetailButton onClick={() => setShowHospitalDetail(true)}>
             상세
-          </ShowDetailButton>
+          </ShowDetailButton> */}
         </DropdownContainer>
       )}
 
@@ -407,7 +415,7 @@ const DropdownItem = styled.div`
 const FetchButton = styled.button`
   height: 2rem;
   padding: 0 16px;
-  margin-left: 1rem;
+  margin-left: 0.25px;
   background-color: #fff;
   color: #52aef9;
   border: 2px solid #52aef9;
