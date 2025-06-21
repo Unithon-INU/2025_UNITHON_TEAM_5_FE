@@ -1,0 +1,8 @@
+{
+  "greeting": "안녕하세요!",
+  "welcome": "저희 서비스에 오신 것을 환영합니다.",
+  "search_nearby": "현 지도에서 검색",
+  "current_location": "현재 위치입니다",
+  "er_type": "응급실",
+  "clinic_type": "종합병원"
+}

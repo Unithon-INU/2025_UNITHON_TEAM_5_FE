@@ -1,3 +1,4 @@
+// App.jsx
 import React, { useState, useEffect, useRef } from "react";
 import NaverMap from "./components/NaverMap";
 import "./App.css";
@@ -17,11 +18,19 @@ import ClockIcon from "./assets/ClockIcon.svg";
 import ERIcon from "./assets/ERIcon.svg";
 import PhoneIcon from "./assets/PhoneIcon.svg";
 import WebIcon from "./assets/WebIcon.svg";
+import TempNaverMap from "./components/TempNaverMap";
+
+// i18n
+import { useTranslation } from "react-i18next";
 
 function App() {
+  // i18n 초기화
+  const { t, i18n } = useTranslation();
+
   const regionRef = useRef(null);
   const districtRef = useRef(null);
   const fetchHospitalsRef = useRef(null);
+  const popupRef = useRef(null);
 
   const [selected, setSelected] = useState("ER");
   const [isPopupVisible, setIsPopupVisible] = useState(false);
@@ -38,7 +47,6 @@ function App() {
   const togglePopup = () => setIsPopupVisible((prev) => !prev);
 
   // 바텀 시트에 들어갈 상태
-
   const [hospitalDetail, setHospitalDetail] = useState({
     nameTranslated: "Seoul-University Hospital", // 번역된 병원 이름
     nameOriginal: "서울대학교 병원 / Seoul Daehakgyo Byeongwon", // 한글 + 영문 로마자
@@ -50,6 +58,7 @@ function App() {
       sunday: "Sunday : Closed (Regular day off)",
     },
     hasER: true, // 응급실 유무
+    hasClinic: true, // 일반 진료 유무
     phone: "02-111-2221", // 전화번호
     website: "https://www.snuh.org/", // 홈페이지
   });
@@ -116,12 +125,22 @@ function App() {
   };
 
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (regionRef.current && !regionRef.current.contains(e.target)) {
-        setStage1DropdownOpen(false);
-      }
-      if (districtRef.current && !districtRef.current.contains(e.target)) {
-        setStage2DropdownOpen(false);
+    // const handleClickOutside = (e) => {
+    //   if (regionRef.current && !regionRef.current.contains(e.target)) {
+    //     setStage1DropdownOpen(false);
+    //   }
+    //   if (districtRef.current && !districtRef.current.contains(e.target)) {
+    //     setStage2DropdownOpen(false);
+    //   }
+    // };
+    const handleClickOutside = (event) => {
+      if (
+        isPopupVisible &&
+        popupRef.current &&
+        !popupRef.current.contains(event.target)
+      ) {
+        setIsPopupVisible(false);
+        togglePopup(false); // 🟢 추가: App.jsx의 isPopupVisible 상태도 false로 변경
       }
     };
 
@@ -129,16 +148,17 @@ function App() {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [isPopupVisible, togglePopup]);
 
   return (
     <CommonBox>
-      <Header togglePopup={togglePopup}>
+      <Header onGlobeClick={togglePopup}>
         <ToggleSwitch selected={selected} setSelected={setSelected} />
       </Header>
-      <NaverMap
+      <TempNaverMap
         isPopupVisible={isPopupVisible}
         onMarkerClick={handleMarkerClick}
+        togglePopup={togglePopup}
       />
 
       {selected === "Clinic" && (
@@ -245,8 +265,15 @@ function App() {
 
         <InfoArea>
           <TypeArea>
-            <HospitalTypeER>ER</HospitalTypeER>
-            <HospitalTypeGeneral>Clinic</HospitalTypeGeneral>
+            {/* hospitalDetail의 값에 따라 조건부 렌더링 및 t 함수로 번역 */}
+            {hospitalDetail.hasER && (
+              <HospitalTypeER>{t("er_type")}</HospitalTypeER>
+            )}
+            {hospitalDetail.hasClinic && (
+              <HospitalTypeGeneral>{t("clinic_type")}</HospitalTypeGeneral>
+            )}
+            {/* <HospitalTypeER>ER</HospitalTypeER>
+            <HospitalTypeGeneral>Clinic</HospitalTypeGeneral> */}
           </TypeArea>
 
           {/* 번역된 병원명 */}

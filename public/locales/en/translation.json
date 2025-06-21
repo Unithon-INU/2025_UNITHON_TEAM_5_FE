@@ -1,0 +1,8 @@
+{
+  "greeting": "Hello, world!",
+  "welcome": "Welcome to our service",
+  "search_nearby": "Search nearby",
+  "current_location": "Current Location",
+  "er_type": "ER",
+  "clinic_type": "Clinic"
+}
