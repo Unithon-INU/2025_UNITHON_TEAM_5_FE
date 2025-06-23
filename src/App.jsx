@@ -30,7 +30,6 @@ function App() {
   const regionRef = useRef(null);
   const districtRef = useRef(null);
   const fetchHospitalsRef = useRef(null);
-  const popupRef = useRef(null);
 
   const [selected, setSelected] = useState("ER");
   const [isPopupVisible, setIsPopupVisible] = useState(false);
@@ -51,7 +50,7 @@ function App() {
     nameTranslated: "Seoul-University Hospital", // 번역된 병원 이름
     nameOriginal: "서울대학교 병원 / Seoul Daehakgyo Byeongwon", // 한글 + 영문 로마자
     address: "서울 종로구 대학로 101 (6.2km)", // 주소
-    openToday: "9 AM - 10 PM (Clinic)", // 오늘 영업시간
+    openToday: "9_am_10_pm_clinic_today", // 오늘 영업시간
     openingHours: {
       weekday: "Mon - Fri : 9:00 AM – 6:00 PM",
       saturday: "Saturday : 9:00 AM – 1:00 PM",
@@ -125,22 +124,12 @@ function App() {
   };
 
   useEffect(() => {
-    // const handleClickOutside = (e) => {
-    //   if (regionRef.current && !regionRef.current.contains(e.target)) {
-    //     setStage1DropdownOpen(false);
-    //   }
-    //   if (districtRef.current && !districtRef.current.contains(e.target)) {
-    //     setStage2DropdownOpen(false);
-    //   }
-    // };
-    const handleClickOutside = (event) => {
-      if (
-        isPopupVisible &&
-        popupRef.current &&
-        !popupRef.current.contains(event.target)
-      ) {
-        setIsPopupVisible(false);
-        togglePopup(false); // 🟢 추가: App.jsx의 isPopupVisible 상태도 false로 변경
+    const handleClickOutside = (e) => {
+      if (regionRef.current && !regionRef.current.contains(e.target)) {
+        setStage1DropdownOpen(false);
+      }
+      if (districtRef.current && !districtRef.current.contains(e.target)) {
+        setStage2DropdownOpen(false);
       }
     };
 
@@ -148,7 +137,7 @@ function App() {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isPopupVisible, togglePopup]);
+  }, [regionRef, districtRef]);
 
   return (
     <CommonBox>
@@ -280,7 +269,7 @@ function App() {
           {hospitalDetail.nameTranslated && (
             <TitleArea>
               <span>{hospitalDetail.nameTranslated}</span>
-              <StatusOpen>OPEN NOW</StatusOpen>
+              <StatusOpen>{t("open_now")}</StatusOpen>
               {/* <StatusClosed>CLOSED</StatusClosed> */}
             </TitleArea>
           )}
@@ -303,7 +292,7 @@ function App() {
             {hospitalDetail.openToday && (
               <InfoRow>
                 <img src={ClockIcon} />
-                <span>Open today :</span>
+                <span>{t("open_today")}</span>
                 <EmphasizedText>{hospitalDetail.openToday}</EmphasizedText>
               </InfoRow>
             )}
@@ -311,15 +300,24 @@ function App() {
             {/* 요일별 운영 시간 */}
             {hospitalDetail.openingHours && (
               <OpeningHours>
-                <EmphasizedText>Opening Hours (Clinic)</EmphasizedText>
+                <EmphasizedText>{t("opening_hours_clinic")}</EmphasizedText>
                 {hospitalDetail.openingHours.weekday && (
-                  <p>{hospitalDetail.openingHours.weekday}</p>
+                  <p>
+                    {t("mon")} - {t("fri")} : 9:00 {t("am")} - 6:00 {t("pm")}
+                  </p>
+                  // <p>{hospitalDetail.openingHours.weekday}</p>
                 )}
                 {hospitalDetail.openingHours.saturday && (
-                  <p>{hospitalDetail.openingHours.saturday}</p>
+                  <p>
+                    {t("sat")} : 9:00 {t("am")} - 1:00 {t("pm")}
+                  </p>
+                  // <p>{hospitalDetail.openingHours.saturday}</p>
                 )}
                 {hospitalDetail.openingHours.sunday && (
-                  <p>{hospitalDetail.openingHours.sunday}</p>
+                  <p>
+                    {t("sat")} : {t("regular_day_off")}
+                  </p>
+                  // <p>{hospitalDetail.openingHours.sunday}</p>
                 )}
               </OpeningHours>
             )}
@@ -328,7 +326,7 @@ function App() {
             {hospitalDetail.hasER && (
               <InfoRow style={{ marginLeft: "-2px" }}>
                 <img src={ERIcon} style={{ marginTop: "-4px" }} />
-                <span style={{ color: "#FF714A" }}>ER Available</span>
+                <span style={{ color: "#FF714A" }}>{t("er_available")}</span>
               </InfoRow>
             )}
 

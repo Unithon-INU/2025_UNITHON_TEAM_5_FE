@@ -4,5 +4,20 @@
   "search_nearby": "Search nearby",
   "current_location": "Current Location",
   "er_type": "ER",
-  "clinic_type": "Clinic"
+  "clinic_type": "Clinic",
+  "open_today": "Open today :",
+  "opening_hours_clinic": "Opening Hours (Clinic)",
+  "mon": "Mon",
+  "tue": "Tue",
+  "wed": "Wed",
+  "thu": "Thu",
+  "fri": "Fri",
+  "sat": "Sat",
+  "sun": "Sun",
+  "am": "AM",
+  "pm": "PM",
+  "regular_day_off": "Closed (Regular day off)",
+  "er_available": "ER Available",
+  "open_now": "OPEN NOW",
+  "9_am_10_pm_clinic_today": "9 AM - 10 PM (Clinic)"
 }

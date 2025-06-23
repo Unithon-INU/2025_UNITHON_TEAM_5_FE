@@ -147,10 +147,6 @@ const TempNaverMap = ({ isPopupVisible, onMarkerClick, togglePopup }) => {
     i18n.changeLanguage(language);
     setPopupVisible(false); // 언어 선택 후 팝업 닫기
     togglePopup(false);
-
-    setTimeout(() => {}, 0); // 임시. 변경예정
-    // togglePopup 함수를 직접 호출하는 게 아니라 props으로 전달받도록 코드를 수정하면 지울예정
-    // 그 전까지는 callback 함수로 팝업 닫기
   };
 
   // 외부 영역 클릭 시 팝업 닫기
