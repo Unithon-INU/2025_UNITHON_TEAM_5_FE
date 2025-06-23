@@ -19,5 +19,7 @@
   "regular_day_off": "휴무일",
   "er_available": "응급실 진료 가능",
   "open_now": "영업중",
-  "9_am_10_pm_clinic_today": "오전 9시 - 오후 10시 (진료과)"
+  "clinic_hours_format": "{{startTime}} - {{endTime}} (종합병원)",
+  "hours_format": "{{dayRange}}: {{startTime}} - {{endTime}}",
+  "closed_format": "{{dayRange}}: {{dayOffText}}"
 }

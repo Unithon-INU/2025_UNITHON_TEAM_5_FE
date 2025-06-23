@@ -19,5 +19,7 @@
   "regular_day_off": "Closed (Regular day off)",
   "er_available": "ER Available",
   "open_now": "OPEN NOW",
-  "9_am_10_pm_clinic_today": "9 AM - 10 PM (Clinic)"
+  "clinic_hours_format": "{{startTime}} - {{endTime}} (Clinic)",
+  "hours_format": "{{dayRange}}: {{startTime}} - {{endTime}}",
+  "closed_format": "{{dayRange}}: {{dayOffText}}"
 }
