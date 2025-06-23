@@ -1,3 +1,4 @@
+// App.jsx
 import React, { useState, useEffect, useRef } from "react";
 import NaverMap from "./components/NaverMap";
 import "./App.css";
@@ -17,8 +18,35 @@ import ClockIcon from "./assets/ClockIcon.svg";
 import ERIcon from "./assets/ERIcon.svg";
 import PhoneIcon from "./assets/PhoneIcon.svg";
 import WebIcon from "./assets/WebIcon.svg";
+import TempNaverMap from "./components/TempNaverMap";
+
+// i18n
+import { useTranslation } from "react-i18next";
+
+const formatTime = (time24, lang) => {
+  if (!time24) return "";
+  const [hour, minute] = time24.split(":").map(Number);
+  const minuteStr = minute.toString().padStart(2, "0");
+
+  if (lang === "ko") {
+    const period = hour < 12 ? "오전" : "오후";
+    let formattedHour = hour % 12;
+    if (formattedHour === 0) formattedHour = 12; // 0시는 오후 12시가 아닌 오전 12시로, 12시는 오후 12시로
+    return `${period} ${formattedHour}:${minuteStr}`;
+  }
+  // 기본값 (영어)
+  else {
+    const period = hour < 12 ? "AM" : "PM";
+    let formattedHour = hour % 12;
+    if (formattedHour === 0) formattedHour = 12; // 0시는 12 AM
+    return `${formattedHour}:${minuteStr} ${period}`;
+  }
+};
 
 function App() {
+  // i18n 초기화
+  const { t, i18n } = useTranslation();
+
   const regionRef = useRef(null);
   const districtRef = useRef(null);
   const fetchHospitalsRef = useRef(null);
@@ -38,18 +66,33 @@ function App() {
   const togglePopup = () => setIsPopupVisible((prev) => !prev);
 
   // 바텀 시트에 들어갈 상태
-
   const [hospitalDetail, setHospitalDetail] = useState({
     nameTranslated: "Seoul-University Hospital", // 번역된 병원 이름
     nameOriginal: "서울대학교 병원 / Seoul Daehakgyo Byeongwon", // 한글 + 영문 로마자
     address: "서울 종로구 대학로 101 (6.2km)", // 주소
-    openToday: "9 AM - 10 PM (Clinic)", // 오늘 영업시간
-    openingHours: {
-      weekday: "Mon - Fri : 9:00 AM – 6:00 PM",
-      saturday: "Saturday : 9:00 AM – 1:00 PM",
-      sunday: "Sunday : Closed (Regular day off)",
+    openToday: {
+      startTime: "09:00",
+      endTime: "22:00",
+      type: "Clinic",
     },
+    openingHours: [
+      {
+        days: ["mon", "tue", "wed", "thu", "fri"], // 적용 요일 (번역 키와 일치시킴)
+        startTime: "09:00",
+        endTime: "22:00",
+      },
+      {
+        days: ["sat"],
+        startTime: "09:00",
+        endTime: "13:00",
+      },
+      {
+        days: ["sun"],
+        isClosed: true, // 휴무일 여부
+      },
+    ],
     hasER: true, // 응급실 유무
+    hasClinic: true, // 일반 진료 유무
     phone: "02-111-2221", // 전화번호
     website: "https://www.snuh.org/", // 홈페이지
   });
@@ -129,16 +172,17 @@ function App() {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [regionRef, districtRef]);
 
   return (
     <CommonBox>
-      <Header togglePopup={togglePopup}>
+      <Header onGlobeClick={togglePopup}>
         <ToggleSwitch selected={selected} setSelected={setSelected} />
       </Header>
-      <NaverMap
+      <TempNaverMap
         isPopupVisible={isPopupVisible}
         onMarkerClick={handleMarkerClick}
+        togglePopup={togglePopup}
       />
 
       {selected === "Clinic" && (
@@ -215,11 +259,6 @@ function App() {
           >
             {isLoading ? "Loading..." : "Request"}
           </FetchButton>
-
-          {/* 바텀 시트를 열려면 이 버튼을 누름 */}
-          {/* <ShowDetailButton onClick={() => setShowHospitalDetail(true)}>
-            상세
-          </ShowDetailButton> */}
         </DropdownContainer>
       )}
 
@@ -245,15 +284,22 @@ function App() {
 
         <InfoArea>
           <TypeArea>
-            <HospitalTypeER>ER</HospitalTypeER>
-            <HospitalTypeGeneral>Clinic</HospitalTypeGeneral>
+            {/* hospitalDetail의 값에 따라 조건부 렌더링 및 t 함수로 번역 */}
+            {hospitalDetail.hasER && (
+              <HospitalTypeER>{t("er_type")}</HospitalTypeER>
+            )}
+            {hospitalDetail.hasClinic && (
+              <HospitalTypeGeneral>{t("clinic_type")}</HospitalTypeGeneral>
+            )}
+            {/* <HospitalTypeER>ER</HospitalTypeER>
+            <HospitalTypeGeneral>Clinic</HospitalTypeGeneral> */}
           </TypeArea>
 
           {/* 번역된 병원명 */}
           {hospitalDetail.nameTranslated && (
             <TitleArea>
               <span>{hospitalDetail.nameTranslated}</span>
-              <StatusOpen>OPEN NOW</StatusOpen>
+              <StatusOpen>{t("open_now")}</StatusOpen>
               {/* <StatusClosed>CLOSED</StatusClosed> */}
             </TitleArea>
           )}
@@ -272,28 +318,61 @@ function App() {
               </InfoRow>
             )}
 
-            {/* 오늘의 운영 시간 */}
+            {/* 오늘 운영 시간 */}
             {hospitalDetail.openToday && (
               <InfoRow>
                 <img src={ClockIcon} />
-                <span>Open today :</span>
-                <EmphasizedText>{hospitalDetail.openToday}</EmphasizedText>
+                <span>{t("open_today")}</span>
+                <EmphasizedText>
+                  {t("clinic_hours_format", {
+                    startTime: formatTime(
+                      hospitalDetail.openToday.startTime,
+                      i18n.language
+                    ),
+                    endTime: formatTime(
+                      hospitalDetail.openToday.endTime,
+                      i18n.language
+                    ),
+                  })}
+                </EmphasizedText>
               </InfoRow>
             )}
 
             {/* 요일별 운영 시간 */}
             {hospitalDetail.openingHours && (
               <OpeningHours>
-                <EmphasizedText>Opening Hours (Clinic)</EmphasizedText>
-                {hospitalDetail.openingHours.weekday && (
-                  <p>{hospitalDetail.openingHours.weekday}</p>
-                )}
-                {hospitalDetail.openingHours.saturday && (
-                  <p>{hospitalDetail.openingHours.saturday}</p>
-                )}
-                {hospitalDetail.openingHours.sunday && (
-                  <p>{hospitalDetail.openingHours.sunday}</p>
-                )}
+                <EmphasizedText>{t("opening_hours_clinic")}</EmphasizedText>
+                {hospitalDetail.openingHours.map((rule, index) => {
+                  // 요일 범위 텍스트 정의 (ex. "월 - 금", "토", "일")
+                  const firstDay = t(rule.days[0]); // hospitalDetail에서 days에 "mon"과 같은 양식으로 translation.json에 들어가는 키값과 동일하게 하였으므로 자동 번역됨
+                  const lastDay = t(rule.days[rule.days.length - 1]);
+                  const dayRangeText =
+                    rule.days.length > 1
+                      ? `${firstDay} - ${lastDay}`
+                      : firstDay;
+
+                  // 휴무일 여부에 따라 다른 번역  키 사용하기
+                  if (rule.isClosed) {
+                    return (
+                      <p key={index}>
+                        {t("closed_format", {
+                          dayRange: dayRangeText,
+                          dayOffText: t("regular_day_off"), // "휴무일" 번역 사용
+                        })}
+                      </p>
+                    );
+                  } else {
+                    return (
+                      <p key={index}>
+                        {t("hours_format", {
+                          dayRange: dayRangeText,
+                          startTime: formatTime(rule.startTime, i18n.language),
+                          endTime: formatTime(rule.endTime, i18n.language),
+                        })}
+                      </p>
+                    );
+                  }
+                })}
               </OpeningHours>
             )}
 
@@ -301,7 +380,7 @@ function App() {
             {hospitalDetail.hasER && (
               <InfoRow style={{ marginLeft: "-2px" }}>
                 <img src={ERIcon} style={{ marginTop: "-4px" }} />
-                <span style={{ color: "#FF714A" }}>ER Available</span>
+                <span style={{ color: "#FF714A" }}>{t("er_available")}</span>
               </InfoRow>
             )}
 

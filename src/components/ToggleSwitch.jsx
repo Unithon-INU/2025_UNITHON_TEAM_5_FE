@@ -1,15 +1,19 @@
+// src/components/ToggleSwitch.jsx
 import React from "react";
 import styled from "styled-components";
+import { useTranslation } from "react-i18next"; // useTranslation 훅 임포트
 
 const ToggleSwitch = ({ selected, setSelected }) => {
+  const { t } = useTranslation(); // useTranslation 훅 사용
+
   return (
     <Wrapper>
       <Slider active={selected} />
       <Tab active={selected === "ER"} onClick={() => setSelected("ER")}>
-        ER
+        {t("er_type")} {/* 'er_type' 번역 키 사용 */}
       </Tab>
       <Tab active={selected === "Clinic"} onClick={() => setSelected("Clinic")}>
-        Clinic
+        {t("clinic_type")} {/* 'clinic_type' 번역 키 사용 */}
       </Tab>
     </Wrapper>
   );
@@ -37,7 +41,6 @@ const Tab = styled.button`
   font-weight: 900;
   cursor: pointer;
   transition: color 0.3s ease;
-  
 `;
 
 const Slider = styled.div`
