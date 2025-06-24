@@ -1,5 +1,5 @@
 // App.jsx
-import React, { useState, useEffect, useRef } from "react";
+import React, { useCallback,useState, useEffect, useRef } from "react";
 import NaverMap from "./components/NaverMap";
 import "./App.css";
 import CommonBox from "./CommonBox";
@@ -10,7 +10,8 @@ import styled from "styled-components";
 import HospitalList from "./components/HospitalList";
 import HospitalItemBody from "./components/HospitalItemBody";
 import BottomSheet from "./components/BottomSheet";
-
+import useLocationStore from "./store/locationStore";
+import { getEmergency,getEmergencyInfo } from "./api/emergencyApi";
 // icons
 import DownArrow from "./assets/DownArrow.svg?react";
 import PinIcon from "./assets/PinIcon.svg";
@@ -19,6 +20,7 @@ import ERIcon from "./assets/ERIcon.svg";
 import PhoneIcon from "./assets/PhoneIcon.svg";
 import WebIcon from "./assets/WebIcon.svg";
 import TempNaverMap from "./components/TempNaverMap";
+import { IoIosArrowDown } from "react-icons/io"; // 화살표 아이콘
 
 // i18n
 import { useTranslation } from "react-i18next";
@@ -58,12 +60,102 @@ function App() {
   const [stage2dropdownOpen, setStage2DropdownOpen] = useState(false);
   const [selectedDistrict, setSelectedDistrict] = useState("강남구");
   const [DeptDropdown, setDeptDropdown] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [selectedHospital, setSelectedHospital] = useState(null);
 
   const toggleStage1Dropdown = () => setStage1DropdownOpen((prev) => !prev);
   const toggleStage2Dropdown = () => setStage2DropdownOpen((prev) => !prev);
   const toggleDeptDropdown = () => setDeptDropdown((prev) => !prev);
   const togglePopup = () => setIsPopupVisible((prev) => !prev);
+
+  const userLocation = useLocationStore((state) => state.userLocation);
+  const [hospitalMarkers, setHospitalMarkers] = useState([]);
+  const [hospitalDetails, setHospitalDetails] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [isMyLocOpen, setIsMyLocOpen] = useState(false);
+  const [myLocationAddress,setMyLocationAddress] =useState();
+  const reverseGeocode = (lat, lng) => {
+  return new Promise((resolve, reject) => {
+    if (!window.naver || !window.naver.maps || !window.naver.maps.Service) {
+      reject("Naver Maps API is not loaded");
+      return;
+    }
+
+    window.naver.maps.Service.reverseGeocode(
+      {
+        coords: new window.naver.maps.LatLng(lat, lng),
+        orders: [window.naver.maps.Service.OrderType.ADDR], // 주소 결과만 요청
+      },
+      (status, response) => {
+        if (status !== window.naver.maps.Service.Status.OK) {
+          reject(status);
+          return;
+        }
+
+        const result = response.v2;
+        const address = result.address; // 주소 정보
+
+        // 주소 구성 요소를 원하는 대로 조합
+        // jibunAddress(지번 주소), roadAddress(도로명 주소) 중 우선순위 정해 사용
+        const formattedAddress =
+          address.jibunAddress || address.roadAddress || "주소 정보 없음";
+
+        resolve(formattedAddress);
+      }
+    );
+  });
+};
+
+
+  const fetchHospitalsNearby = async () => {
+    if (!userLocation) {
+      alert("현재 위치를 먼저 확인해주세요.");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const emergencyData = await getEmergency(userLocation.lat, userLocation.lon, 10);
+      const hospitals = emergencyData || [];
+      console.log('emer',emergencyData)
+            console.log('hs',hospitals)
+
+
+      setHospitalMarkers(hospitals.map(h => ({
+        hpid: h.hpid,
+        lat: h.lat,
+        lng: h.lng,
+        name: h.name,
+      })));
+
+      const emergencyInfoData = await getEmergencyInfo(userLocation.lat, userLocation.lon, 10);
+      console.log('se',emergencyInfoData)
+      const details = emergencyInfoData || [];
+      console.log('detail',details)
+
+
+
+      const mergedDetails = hospitals.map(h => {
+        const detail = details.find(d => d.hpid === h.hpid) || {};
+        return {
+          hpid: h.hpid,
+          name: h.name,
+          lat: h.lat,
+          lng: h.lng,
+          addr: h.address,   // 주소는 getEmergency에서
+          ...detail, 
+        };
+      });
+      console.log('멎ㅣ',mergedDetails)
+
+      setHospitalDetails(mergedDetails);
+    } catch (error) {
+      console.error("병원 정보 불러오기 실패", error);
+      setHospitalMarkers([]);
+      setHospitalDetails([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // 바텀 시트에 들어갈 상태
   const [hospitalDetail, setHospitalDetail] = useState({
@@ -100,10 +192,12 @@ function App() {
   // Bottom Sheet 전체 열기/닫기
   const [showHospitalDetail, setShowHospitalDetail] = useState(false);
 
-  const handleMarkerClick = () => {
-    console.log("마커가 클릭되었습니다!");
-    setShowHospitalDetail(true);
-  };
+  const handleMarkerClick = useCallback((hpid) => {
+    
+  setSelectedHospital(hpid);
+  setShowHospitalDetail(true);
+}, []);
+
 
   const deptList = [
     "Internal Medicine",
@@ -113,41 +207,7 @@ function App() {
     "Dermatology",
   ];
 
-  const regionMap = {
-    서울특별시: "Seoul-si",
-    인천광역시: "Inchoen-si",
-    광주광역시: "Gwangju-si",
-    부산광역시: "Busan-si",
-  };
-
-  const districtMap = {
-    서울특별시: {
-      강남구: "Gangnam-gu",
-      종로구: "Jongno-gu",
-      중구: "Jung-gu",
-      용산구: "Yongsan-gu",
-    },
-    인천광역시: {
-      연수구: "Yeonsu-gu",
-      부평구: "Bupyeong-gu",
-      남동구: "Namdong-gu",
-      서구: "Seo-gu",
-    },
-    부산광역시: {
-      중구: "Jung-gu",
-      서구: "Seo-gu",
-      동구: "Dong-gu",
-      해운대구: "Haeundae-gu",
-    },
-    광주광역시: {
-      동구: "Dong-gu",
-      서구: "Seo-gu",
-      남구: "Nam-gu",
-      북구: "Buk-gu",
-    },
-  };
-
-  const regionList = Object.keys(regionMap);
+  
 
   const handleRegionSelect = (region) => {
     setSelectedRegion(region);
@@ -173,6 +233,19 @@ function App() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [regionRef, districtRef]);
+  useEffect(() => {
+  if (!userLocation) return;
+
+  reverseGeocode(userLocation.lat, userLocation.lon)
+    .then(address => {
+      setMyLocationAddress(address);
+    })
+    .catch(() => {
+      setMyLocationAddress("주소 변환 실패");
+    });
+}, [userLocation]);
+
+
 
   return (
     <CommonBox>
@@ -183,6 +256,8 @@ function App() {
         isPopupVisible={isPopupVisible}
         onMarkerClick={handleMarkerClick}
         togglePopup={togglePopup}
+        onSearchNearby={fetchHospitalsNearby}
+        hospitalMarkers={hospitalMarkers}
       />
 
       {selected === "Clinic" && (
@@ -197,77 +272,46 @@ function App() {
               ))}
             </Dropdown>
           )}
-          <MylocateDiv>My location : 119, Acadeaaaaaaaaa</MylocateDiv>
+          <LocRow>
+              <MylocateDiv>
+                {myLocationAddress}
+                {isMyLocOpen && (
+              <LocationPopup>
+                {myLocationAddress}
+              </LocationPopup>
+            )}
+              </MylocateDiv>
+              <ArrowIcon open={isMyLocOpen} onClick={() => setIsMyLocOpen(prev => !prev)} />
+            </LocRow>
+
         </DeptDiv>
       )}
 
       {selected === "ER" && (
         <DropdownContainer>
-          {/* 시/도 선택 */}
-          <DropdownWrapper ref={regionRef}>
-            <RegionButton onClick={toggleStage1Dropdown} $isNarrow={true}>
-              {regionMap[selectedRegion]} <StyleDown />
-            </RegionButton>
-            {stage1dropdownOpen && (
-              <Dropdown>
-                {regionList.map((region, idx) => (
-                  <DropdownItem
-                    key={idx}
-                    onClick={() => {
-                      setSelectedRegion(region);
-                      setSelectedDistrict(Object.keys(districtMap[region])[0]);
-                      setStage1DropdownOpen(false);
-                    }}
-                  >
-                    {regionMap[region]}
-                  </DropdownItem>
-                ))}
-              </Dropdown>
+          <ERdiv>
+            <LocRow>
+              <MylocateDiv>
+                {myLocationAddress}
+                {isMyLocOpen && (
+              <LocationPopup>
+                {myLocationAddress}
+              </LocationPopup>
             )}
-          </DropdownWrapper>
+              </MylocateDiv>
+              <ArrowIcon open={isMyLocOpen} onClick={() => setIsMyLocOpen(prev => !prev)} />
+            </LocRow>
 
-          {/* 군/구 선택 */}
-          <DropdownWrapper ref={districtRef}>
-            <RegionButton onClick={toggleStage2Dropdown}>
-              {districtMap[selectedRegion][selectedDistrict]} <StyleDown />
-            </RegionButton>
-            {stage2dropdownOpen && (
-              <Dropdown>
-                {Object.keys(districtMap[selectedRegion] || {}).map(
-                  (district, idx) => (
-                    <DropdownItem
-                      key={idx}
-                      onClick={() => handleDistrictSelect(district)}
-                    >
-                      {districtMap[selectedRegion][district]}
-                    </DropdownItem>
-                  )
-                )}
-              </Dropdown>
-            )}
-          </DropdownWrapper>
 
-          <FetchButton
-            disabled={isLoading}
-            onClick={async () => {
-              if (fetchHospitalsRef.current) {
-                setIsLoading(true);
-                await fetchHospitalsRef.current();
-                setIsLoading(false);
-              }
-            }}
-          >
-            {isLoading ? "Loading..." : "Request"}
-          </FetchButton>
+          </ERdiv>
+          
         </DropdownContainer>
       )}
-
+      
       <HospitalList
-        region={selectedRegion}
-        district={selectedDistrict}
-        onFetch={fetchHospitalsRef}
+        hospitalList={hospitalDetails}
+        isLoading={isLoading}
       />
-
       {/* isOpen prop: true이면 바텀 시트가 화면에 나타남 */}
       {/* <HospitalItemBody
         isOpen={showHospitalDetail}
@@ -411,22 +455,24 @@ export default App;
 const DeptDiv = styled.div`
   padding: 8px 16px;
   width: 100%;
-  height: 48px;
+  min-height: 48px;
   box-sizing: border-box;
   position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
   justify-content: space-between;
+  border-bottom:solid 1px gray;
 `;
 
 const DropdownContainer = styled.div`
   padding: 8px 16px;
   width: 100%;
-  height: 48px;
+  min-height: 48px;
   box-sizing: border-box;
   display: flex;
   align-items: center;
+  border-bottom:solid 1px gray;
 `;
 
 const StyleDown = styled(DownArrow)`
@@ -480,6 +526,7 @@ const Dropdown = styled.div`
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   z-index: 5;
+  
 `;
 
 const DropdownItem = styled.div`
@@ -489,6 +536,7 @@ const DropdownItem = styled.div`
   &:hover {
     background-color: #f1f1f1;
   }
+  
 `;
 
 const FetchButton = styled.button`
@@ -522,6 +570,13 @@ const ShowDetailButton = styled.button`
   }
 `;
 
+const LocRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+`;
+
 const MylocateDiv = styled.div`
   font-size: 14px;
   font-family: "Kanit", sans-serif;
@@ -531,6 +586,8 @@ const MylocateDiv = styled.div`
   overflow: hidden;
   text-overflow: ellipsis;
 `;
+
+
 
 // 바텀 시트 관련 UI
 
@@ -708,4 +765,36 @@ const OpeningHours = styled.div`
   p {
     margin: 4px 0;
   }
+`;
+
+const ERdiv=styled.div`
+  display:flex;
+  justify-content: flex-end;
+  width: 100%;
+
+`
+
+const LocationPopup = styled.div`
+  position: absolute;
+  top: calc(100% + 4px); /* 아래로 띄우기 */
+  right: 0;
+  background: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  z-index: 20;
+  width: max-content;
+  max-width: 260px;
+  font-size: 13px;
+  color: black;
+  white-space: normal;
+  word-break: break-word;
+`;
+
+const ArrowIcon = styled(IoIosArrowDown)`
+  
+  transition: transform 0.3s ease;
+  transform: ${({ open }) => (open ? "rotate(180deg)" : "rotate(0deg)")};
+  cursor: pointer;
+  color: black;
 `;

@@ -90,5 +90,6 @@ const Content = styled.div`
   padding: 20px; */
   /* padding: 16px; */
   overflow-y: auto;
+  scrollbar-width: none;
   height: calc(100% - 24px);
 `;
