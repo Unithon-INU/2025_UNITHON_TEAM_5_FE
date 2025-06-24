@@ -10,6 +10,7 @@ import styled from "styled-components";
 import HospitalList from "./components/HospitalList";
 import HospitalItemBody from "./components/HospitalItemBody";
 import BottomSheet from "./components/BottomSheet";
+import ChatModal from "./components/ChatModal";
 
 // icons
 import DownArrow from "./assets/DownArrow.svg?react";
@@ -174,9 +175,14 @@ function App() {
     };
   }, [regionRef, districtRef]);
 
+  // chat 모달
+  const [isChatModalOpen, setIsChatModalOpen] = useState(false);
+  const openChatModal = () => setIsChatModalOpen(true);
+  const closeChatModal = () => setIsChatModalOpen(false);
+
   return (
     <CommonBox>
-      <Header onGlobeClick={togglePopup}>
+      <Header onGlobeClick={togglePopup} onChatIconClick={openChatModal}>
         <ToggleSwitch selected={selected} setSelected={setSelected} />
       </Header>
       <TempNaverMap
@@ -402,6 +408,7 @@ function App() {
           </DetailsArea>
         </InfoArea>
       </BottomSheet>
+      {isChatModalOpen && <ChatModal onClose={closeChatModal} />}
     </CommonBox>
   );
 }

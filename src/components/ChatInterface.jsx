@@ -1,0 +1,269 @@
+// ChatInterface.jsx
+import React, { useState } from "react";
+import styled, { keyframes } from "styled-components";
+
+// React 컴포넌트
+function ChatInterface() {
+  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  //   const API_URL = import.meta.env.VITE_API_GATEWAY_URL;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+    const userMessage = {
+      role: "user",
+      content: input,
+    };
+
+    // 이전 메시지와 새 사용자 메시지를 함께 상태에 저장
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
+    setIsLoading(true);
+
+    try {
+      // API 요청 시 이전 대화 내용을 포함하려면 messages를 함께 보내야 할 수 있습니다.
+      // 현재 코드는 마지막 메시지만 보내고 있습니다.
+      // `http://localhost:8082/api/chat`,
+      const response = await fetch(
+        `https://serverless-seven-eta-36.vercel.app/api/chat`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          // openai의 API를 사용할 경우 role이 포함된 userMessage를 보내야 함
+          // body: JSON.stringify(userMessage),
+
+          // gemini의 API를 사용할 경우 content만 보내야 함
+          body: JSON.stringify({ content: input }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("API 요청이 실패했습니다");
+      }
+
+      const data = await response.json();
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: data.message,
+        },
+      ]);
+    } catch (error) {
+      console.error("Error:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "죄송합니다, 오류가 발생했습니다: " + error.message,
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <ChatContainer>
+      <ChatHeader>
+        <h1>AI 채팅</h1>
+      </ChatHeader>
+
+      <MessagesContainer>
+        {messages.length === 0 ? (
+          <EmptyState>
+            <p>AI와 대화를 시작해보세요</p>
+          </EmptyState>
+        ) : (
+          messages.map((message, index) => (
+            // styled-component인 Message에 role prop을 전달하여 동적으로 스타일을 적용
+            <Message key={index} role={message.role}>
+              {message.content}
+            </Message>
+          ))
+        )}
+        {isLoading && (
+          <Message role="assistant">
+            <LoadingIndicator>
+              <span></span>
+              <span></span>
+              <span></span>
+            </LoadingIndicator>
+          </Message>
+        )}
+      </MessagesContainer>
+
+      <InputForm onSubmit={handleSubmit}>
+        <StyledInput
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="메시지를 입력하세요..."
+          disabled={isLoading}
+        />
+        <StyledButton type="submit" disabled={isLoading || !input.trim()}>
+          {isLoading ? "전송 중..." : "전송"}
+        </StyledButton>
+      </InputForm>
+    </ChatContainer>
+  );
+}
+
+export default ChatInterface;
+
+// CSS의 @keyframes를 styled-components의 keyframes 헬퍼로 변환
+const bounce = keyframes`
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+`;
+
+// 스타일드 컴포넌트 정의
+const ChatContainer = styled.div`
+  width: 100%;
+  /* max-width: 800px; */
+  height: 100%;
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+
+  /* margin: 0 auto;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+   */
+
+  /* height: 600px; */
+`;
+
+const ChatHeader = styled.div`
+  background-color: #075985;
+  color: white;
+  padding: 15px 20px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  text-align: center;
+
+  h1 {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+`;
+
+const MessagesContainer = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  background-color: #f9fafb;
+`;
+
+const EmptyState = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: #9ca3af;
+  font-style: italic;
+`;
+
+const Message = styled.div`
+  padding: 12px 16px;
+  border-radius: 15px;
+  max-width: 80%;
+  word-break: break-word;
+  line-height: 1.5;
+  position: relative;
+
+  /* props를 기반으로 동적 스타일링 */
+  ${({ role }) =>
+    role === "user"
+      ? `
+        align-self: flex-end;
+        background-color: #3b82f6;
+        color: white;
+        border-bottom-right-radius: 4px;
+      `
+      : `
+        align-self: flex-start;
+        background-color: #e5e7eb;
+        color: #1f2937;
+        border-bottom-left-radius: 4px;
+      `}
+`;
+
+const LoadingIndicator = styled.div`
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  justify-content: center;
+  min-width: 50px;
+
+  span {
+    width: 8px;
+    height: 8px;
+    background-color: #9ca3af;
+    border-radius: 50%;
+    display: inline-block;
+    animation: ${bounce} 1.5s infinite ease-in-out;
+
+    &:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    &:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+  }
+`;
+
+const InputForm = styled.form`
+  display: flex;
+  gap: 10px;
+  padding: 15px;
+  border-top: 1px solid #e5e7eb;
+`;
+
+const StyledInput = styled.input`
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+
+  &:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  }
+`;
+
+const StyledButton = styled.button`
+  padding: 12px 20px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #2563eb;
+  }
+
+  &:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+  }
+`;
