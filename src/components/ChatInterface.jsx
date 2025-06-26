@@ -2,18 +2,22 @@
 import React, { useState, useRef, useEffect } from "react";
 import styled, { keyframes } from "styled-components";
 import { ENDPOINTS } from "../constants/api";
+import { useChatStore } from "../store/chatStore";
 
 // React 컴포넌트
 function ChatInterface() {
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState([
-    {
-      role: "assistant",
-      content:
-        '안녕하세요! 응급/의료 정보 AI 챗봇입니다. 증상, 진료 과목, 응급 상황 등에 대해 질문해 주세요. 더 정확한 답변을 위해, "어제부터 열이 38도까지 오르고 목이 아파요"와 같이 구체적으로 질문해주시면 좋습니다.',
-    },
-  ]);
   const [isLoading, setIsLoading] = useState(false);
+
+  // const [messages, setMessages] = useState([
+  //   {
+  //     role: "assistant",
+  //     content:
+  //       '안녕하세요! 응급/의료 정보 AI 챗봇입니다. 증상, 진료 과목, 응급 상황 등에 대해 질문해 주세요. 더 정확한 답변을 위해, "어제부터 열이 38도까지 오르고 목이 아파요"와 같이 구체적으로 질문해주시면 좋습니다.',
+  //   },
+  // ]);
+
+  const { messages, setMessages, clearChat } = useChatStore();
 
   // 메시지 목록이 업데이트될 때마다 맨 아래로 스크롤 하는 기능
   const messageEndRef = useRef(null);
@@ -27,6 +31,12 @@ function ChatInterface() {
     scrollToBottom();
   }, [messages, isLoading]);
 
+  const handleNewChat = () => {
+    if (messages.length > 1) {
+      clearChat();
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
@@ -36,9 +46,9 @@ function ChatInterface() {
       content: input,
     };
 
-    // 이전 메시지와 새 사용자 메시지를 함께 상태에 저장
+    // 이전 메시지와 새 사용자 메시지를 포함한 새 배열을 만들어 스토어를 업데이트
     const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
+    setMessages(newMessages); // zustand store의 setMessages 함수 호출
     setInput("");
     setIsLoading(true);
 
@@ -69,17 +79,16 @@ function ChatInterface() {
         content: data.answer,
       };
 
-      // 백엔드로부터 받은 AI의 답변을 messages 상태에 추가
-      setMessages((prev) => [...prev, assistantMessage]);
+      // store를 쓰므로, 완성된 배열을 넘겨준다.
+      setMessages([...newMessages, assistantMessage]);
     } catch (error) {
       console.error("Error:", error);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: "죄송합니다, 오류가 발생했습니다: " + error.message,
-        },
-      ]);
+      const errorMessage = {
+        role: "assistant",
+        content: "죄송합니다, 오류가 발생했습니다: " + error.message,
+      };
+
+      setMessages([...newMessages, errorMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +97,8 @@ function ChatInterface() {
   return (
     <ChatContainer>
       <ChatHeader>
-        <h1>AI 채팅</h1>
+        <h1>큐링핑</h1>
+        <NewChatButton onClick={handleNewChat}>새 채팅 시작</NewChatButton>
       </ChatHeader>
 
       <MessagesContainer>
@@ -168,6 +178,24 @@ const ChatHeader = styled.div`
   }
 `;
 
+const NewChatButton = styled.button`
+  background-color: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  color: white;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+`;
+
 const MessagesContainer = styled.div`
   flex: 1;
   overflow-y: auto;
@@ -178,14 +206,15 @@ const MessagesContainer = styled.div`
   background-color: #f9fafb;
 `;
 
-const EmptyState = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  color: #9ca3af;
-  font-style: italic;
-`;
+// 고정된 첫 메시지를 주기 전 'ai와 대화를 시작해보세요!'하는 컴포넌트
+// const EmptyState = styled.div`
+//   display: flex;
+//   justify-content: center;
+//   align-items: center;
+//   height: 100%;
+//   color: #9ca3af;
+//   font-style: italic;
+// `;
 
 const Message = styled.div`
   padding: 12px 16px;
