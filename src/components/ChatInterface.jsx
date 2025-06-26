@@ -1,6 +1,7 @@
 // ChatInterface.jsx
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import styled, { keyframes } from "styled-components";
+import { ENDPOINTS } from "../constants/api";
 
 // React 컴포넌트
 function ChatInterface() {
@@ -8,52 +9,62 @@ function ChatInterface() {
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  //   const API_URL = import.meta.env.VITE_API_GATEWAY_URL;
+  // 메시지 목록이 업데이트될 때마다 맨 아래로 스크롤 하는 기능
+  const messageEndRef = useRef(null);
+
+  // 나중에 이 함수만 useEffect가 아니라 맨 아래로 가는 기능 버튼으로 넣어도 좋을 듯
+  const scrollToBottom = () => {
+    messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
+
     const userMessage = {
       role: "user",
       content: input,
     };
 
     // 이전 메시지와 새 사용자 메시지를 함께 상태에 저장
-    setMessages((prev) => [...prev, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setInput("");
     setIsLoading(true);
 
     try {
-      // API 요청 시 이전 대화 내용을 포함하려면 messages를 함께 보내야 할 수 있습니다.
-      // 현재 코드는 마지막 메시지만 보내고 있습니다.
       // `http://localhost:8082/api/chat`,
       const response = await fetch(
-        `https://serverless-seven-eta-36.vercel.app/api/chat`,
+        // `https://serverless-seven-eta-36.vercel.app/api/chat`,
+        ENDPOINTS.chatbot,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          // openai의 API를 사용할 경우 role이 포함된 userMessage를 보내야 함
-          // body: JSON.stringify(userMessage),
-
-          // gemini의 API를 사용할 경우 content만 보내야 함
-          body: JSON.stringify({ content: input }),
+          body: JSON.stringify({
+            messages: newMessages, // 'userMessage'만 보내는 대신 전체 메시지 배열을 전송
+          }),
         }
       );
 
       if (!response.ok) {
-        throw new Error("API 요청이 실패했습니다");
+        throw new Error(`${response.status}: API 요청이 실패했습니다.`);
       }
 
       const data = await response.json();
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: data.message,
-        },
-      ]);
+
+      const assistantMessage = {
+        role: "assistant",
+        content: data.answer,
+      };
+
+      // 백엔드로부터 받은 AI의 답변을 messages 상태에 추가
+      setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error("Error:", error);
       setMessages((prev) => [
