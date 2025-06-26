@@ -4,18 +4,12 @@ import styled, { keyframes } from "styled-components";
 import { ENDPOINTS } from "../constants/api";
 import { useChatStore } from "../store/chatStore";
 
-// React 컴포넌트
+// icons
+import ChatBotIcon from "../assets/ChatbotIcon.svg";
+
 function ChatInterface() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
-  // const [messages, setMessages] = useState([
-  //   {
-  //     role: "assistant",
-  //     content:
-  //       '안녕하세요! 응급/의료 정보 AI 챗봇입니다. 증상, 진료 과목, 응급 상황 등에 대해 질문해 주세요. 더 정확한 답변을 위해, "어제부터 열이 38도까지 오르고 목이 아파요"와 같이 구체적으로 질문해주시면 좋습니다.',
-  //   },
-  // ]);
 
   const { messages, setMessages, clearChat } = useChatStore();
 
@@ -102,12 +96,21 @@ function ChatInterface() {
       </ChatHeader>
 
       <MessagesContainer>
-        {messages.map((message, index) => (
-          // styled-component인 Message에 role prop을 전달하여 동적으로 스타일을 적용
-          <Message key={index} role={message.role}>
-            {message.content}
-          </Message>
-        ))}
+        {messages.map((message, index) =>
+          // role로 동적 스타일링 적용
+          message.role === "assistant" ? (
+            <AssistantContainer>
+              <img src={ChatBotIcon} />
+              <Message key={index} role={message.role}>
+                {message.content}
+              </Message>
+            </AssistantContainer>
+          ) : (
+            <Message key={index} role={message.role}>
+              {message.content}
+            </Message>
+          )
+        )}
         {isLoading && (
           <Message role="assistant">
             <LoadingIndicator>
@@ -165,12 +168,16 @@ const ChatContainer = styled.div`
 `;
 
 const ChatHeader = styled.div`
-  background-color: #075985;
+  background-color: #52aef9;
   color: white;
   padding: 15px 20px;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
   text-align: center;
+
+  display: flex;
+  /* justify-content: center; */
+  align-items: center;
 
   h1 {
     margin: 0;
@@ -196,12 +203,23 @@ const NewChatButton = styled.button`
   }
 `;
 
+const AssistantContainer = styled.div`
+  display: flex;
+  align-items: center;
+
+  img {
+    align-self: flex-end;
+    margin-right: 1rem;
+  }
+`;
+
 const MessagesContainer = styled.div`
   flex: 1;
   overflow-y: auto;
   padding: 20px;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 15px;
   background-color: #f9fafb;
 `;
