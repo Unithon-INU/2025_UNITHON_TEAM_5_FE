@@ -2,17 +2,25 @@
 import React from "react";
 import styled from "styled-components";
 import { useTranslation } from "react-i18next"; // useTranslation 훅 임포트
+import useHospitalTypeStore from "../store/stateStore";
 
 const ToggleSwitch = ({ selected, setSelected }) => {
   const { t } = useTranslation(); // useTranslation 훅 사용
+  const setHospitalType = useHospitalTypeStore((state) => state.setHospitalType);
+
+  // 클릭 시 호출할 함수 따로 선언
+  const handleSelect = (type) => {
+    setSelected(type);          // 외부 상태 업데이트
+    setHospitalType(type);      // Zustand 상태 업데이트
+  };
 
   return (
     <Wrapper>
       <Slider active={selected} />
-      <Tab active={selected === "ER"} onClick={() => setSelected("ER")}>
+      <Tab active={selected === "ER"} onClick={() => handleSelect("ER")}>
         {t("er_type")} {/* 'er_type' 번역 키 사용 */}
       </Tab>
-      <Tab active={selected === "Clinic"} onClick={() => setSelected("Clinic")}>
+      <Tab active={selected === "Clinic"} onClick={() => handleSelect("Clinic")}>
         {t("clinic_type")} {/* 'clinic_type' 번역 키 사용 */}
       </Tab>
     </Wrapper>

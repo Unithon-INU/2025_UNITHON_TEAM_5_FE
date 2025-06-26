@@ -5,26 +5,33 @@ import Bed from "../assets/bed.svg?react";
 import { IoIosArrowDown } from "react-icons/io"; // 화살표 아이콘
 
 
-export default function HospitalItem({ name, address, tel, icuInfo, recommended }) {
+export default function HospitalItem({ name, address, tel, icuInfo, recommended,type }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const hasIcuInfo = icuInfo && icuInfo.hvec != null;
 
   return (
   <Wrapper recommended={recommended}>
     <FirstArea>
-      <span>
+      <span style={{fontSize:'16px'}}>
         <strong>{name}</strong>
       </span>
       <AddressRow>
-        <AddressText>{address || "null"}</AddressText>
+        <AddressText>
+          {type === "Clinic" ? address : address || "null"}
+        </AddressText>
         {address && (
           <DropdownBtn onClick={() => setIsModalOpen(!isModalOpen)}>
             <RotatingIcon open={isModalOpen} size={16} />
           </DropdownBtn>
         )}
       </AddressRow>
-      <span>{hasIcuInfo ? tel || "전화번호 없음" : "정보를 제공하지 않음"}</span>
-    </FirstArea>
+
+      <span>
+        {type === "Clinic" ? (tel || "전화번호 없음") : (
+          hasIcuInfo ? (tel || "전화번호 없음") : "정보를 제공하지 않음"
+        )}
+      </span>
+      </FirstArea>
 
     <SecondArea recommended={recommended}>
       {recommended && <Pickdiv>AI PICK!</Pickdiv>}
@@ -74,7 +81,7 @@ const Wrapper = styled.div`
 `;
 
 const FirstArea = styled.div`
-  
+  font-size: 14px;
   width: 75%;
   display: flex;
   flex-direction: column;
