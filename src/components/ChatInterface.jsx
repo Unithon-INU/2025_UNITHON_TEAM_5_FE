@@ -12,12 +12,12 @@ import CloseIcon from "../assets/CloseIcon.svg";
 import { useTranslation } from "react-i18next";
 
 function ChatInterface({ onClose }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const { messages, setMessages, clearChat } = useChatStore();
+  const { messages, setMessages, clearChat, initializeChat } = useChatStore();
 
   // 메시지 목록이 업데이트될 때마다 맨 아래로 스크롤 하는 기능
   const messageEndRef = useRef(null);
@@ -27,13 +27,19 @@ function ChatInterface({ onClose }) {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // 2. 컴포넌트가 처음 로드될 때, 그리고 언어가 변경될 때마다 실행됩니다.
+  useEffect(() => {
+    // 현재 언어에 맞는 초기 메시지로 채팅방을 설정/초기화합니다.
+    initializeChat(t);
+  }, [i18n.language, initializeChat, t]); // 언어(i18n.language)가 바뀌면 이 effect가 다시 실행됩니다.
+
   useEffect(() => {
     scrollToBottom();
   }, [messages, isLoading]);
 
   const handleNewChat = () => {
     if (messages.length > 1) {
-      clearChat();
+      clearChat(t); // zustand와 i18n으로 clearChat 로직을 수정하여 이제 '새 채팅'을 누르면 현재 언어에 맞는 초기 메시지로 리셋됨
     }
   };
 
@@ -100,7 +106,7 @@ function ChatInterface({ onClose }) {
         <NewChatButton onClick={handleNewChat}>{t("new_chat")}</NewChatButton>
         <img className="chatbot" src={ChatBotIcon} />
         <CloseButton onClick={onClose}>
-          <img src={CloseIcon} />
+          <img src={CloseIcon} alt="close" />
         </CloseButton>
       </ChatHeader>
 
@@ -136,11 +142,11 @@ function ChatInterface({ onClose }) {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="메시지를 입력하세요..."
+          placeholder={t("chat_placeholder")}
           disabled={isLoading}
         />
         <StyledButton type="submit" disabled={isLoading || !input.trim()}>
-          {isLoading ? "전송 중..." : "전송"}
+          {isLoading ? t("sending") : t("send")}
         </StyledButton>
       </InputForm>
     </ChatContainer>

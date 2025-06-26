@@ -12,6 +12,5 @@ const CommonBox = styled.div`
   display: flex;
   flex-direction: column;
   position: relative;
-  overflow: hidden;
 `;
 export default CommonBox;

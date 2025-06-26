@@ -22,5 +22,9 @@
   "clinic_hours_format": "{{startTime}} - {{endTime}} (종합병원)",
   "hours_format": "{{dayRange}}: {{startTime}} - {{endTime}}",
   "closed_format": "{{dayRange}}: {{dayOffText}}",
-  "new_chat": "새 채팅"
+  "new_chat": "새 채팅",
+  "initial_chat_message": "안녕하세요! 응급/의료 정보 AI 챗봇입니다. 증상, 진료 과목, 응급 상황 등에 대해 질문해 주세요. 더 정확한 답변을 위해, '어제부터 열이 38도까지 오르고 목이 아파요'와 같이 구체적으로 질문해주시면 좋습니다.",
+  "chat_placeholder": "메시지를 입력하세요...",
+  "sending": "전송 중...",
+  "send": "전송"
 }
