@@ -6,8 +6,14 @@ import { useChatStore } from "../store/chatStore";
 
 // icons
 import ChatBotIcon from "../assets/ChatbotIcon.svg";
+import CloseIcon from "../assets/CloseIcon.svg";
 
-function ChatInterface() {
+// i18n
+import { useTranslation } from "react-i18next";
+
+function ChatInterface({ onClose }) {
+  const { t } = useTranslation();
+
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -91,8 +97,11 @@ function ChatInterface() {
   return (
     <ChatContainer>
       <ChatHeader>
-        <h1>큐링핑</h1>
-        <NewChatButton onClick={handleNewChat}>새 채팅 시작</NewChatButton>
+        <NewChatButton onClick={handleNewChat}>{t("new_chat")}</NewChatButton>
+        <img className="chatbot" src={ChatBotIcon} />
+        <CloseButton onClick={onClose}>
+          <img src={CloseIcon} />
+        </CloseButton>
       </ChatHeader>
 
       <MessagesContainer>
@@ -170,18 +179,23 @@ const ChatContainer = styled.div`
 const ChatHeader = styled.div`
   background-color: #52aef9;
   color: white;
-  padding: 15px 20px;
+  padding: 1rem 1.5rem;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
   text-align: center;
 
   display: flex;
-  /* justify-content: center; */
+  justify-content: space-between;
   align-items: center;
 
   h1 {
     margin: 0;
-    font-size: 1.5rem;
+    font-size: 1.25rem;
+  }
+
+  img.chatbot {
+    width: 3.25rem;
+    transform: translate(-1rem, 0.2rem);
   }
 `;
 
@@ -193,13 +207,36 @@ const NewChatButton = styled.button`
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.9rem;
-  font-weight: 500;
-  transition:
-    background-color 0.2s,
-    color 0.2s;
+  font-weight: 700;
 
   &:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: #fff;
+    color: #53aef9;
+    /* border: none; */
+  }
+
+  &:not(:hover) {
+    transition:
+      background-color 0.2s,
+      color 0.2s;
+  }
+`;
+
+const CloseButton = styled.button`
+  border: none;
+  background: transparent;
+  width: 1rem;
+  color: white;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+
+  &:hover {
+    transform: scale(1.25);
+    transition: 0.2s ease-out;
   }
 `;
 
@@ -209,7 +246,8 @@ const AssistantContainer = styled.div`
 
   img {
     align-self: flex-end;
-    margin-right: 1rem;
+    margin-right: 0.5rem;
+    width: 3rem;
   }
 `;
 

@@ -5,8 +5,10 @@ import { persist, createJSONStorage } from "zustand/middleware";
 const initialAssistantMessage = {
   role: "assistant",
   content:
-    '안녕하세요! 응급/의료 정보 AI 챗봇입니다. 증상, 진료 과목, 응급 상황 등에 대해 질문해 주세요. 더 정확한 답변을 위해, "어제부터 열이 38도까지 오르고 목이 아파요"와 같이 구체적으로 질문해주시면 좋습니다.',
+    'Hello! This is the emergency/medical information AI chatbot. Please ask questions about your symptoms, treatment subjects, emergencies, and more. For a more accurate answer, I would like you to ask specific questions such as "My fever has reached 38 degrees since yesterday and my throat hurts.',
 };
+
+// content:'안녕하세요! 응급/의료 정보 AI 챗봇입니다. 증상, 진료 과목, 응급 상황 등에 대해 질문해 주세요. 더 정확한 답변을 위해, "어제부터 열이 38도까지 오르고 목이 아파요"와 같이 구체적으로 질문해주시면 좋습니다.'
 
 export const useChatStore = create(
   persist(

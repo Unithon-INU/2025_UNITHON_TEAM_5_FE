@@ -21,5 +21,6 @@
   "open_now": "영업중",
   "clinic_hours_format": "{{startTime}} - {{endTime}} (종합병원)",
   "hours_format": "{{dayRange}}: {{startTime}} - {{endTime}}",
-  "closed_format": "{{dayRange}}: {{dayOffText}}"
+  "closed_format": "{{dayRange}}: {{dayOffText}}",
+  "new_chat": "새 채팅"
 }

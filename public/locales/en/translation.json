@@ -21,5 +21,6 @@
   "open_now": "OPEN NOW",
   "clinic_hours_format": "{{startTime}} - {{endTime}} (Clinic)",
   "hours_format": "{{dayRange}}: {{startTime}} - {{endTime}}",
-  "closed_format": "{{dayRange}}: {{dayOffText}}"
+  "closed_format": "{{dayRange}}: {{dayOffText}}",
+  "new_chat": "New Chat"
 }
