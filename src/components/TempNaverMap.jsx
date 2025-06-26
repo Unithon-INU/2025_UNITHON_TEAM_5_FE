@@ -4,6 +4,10 @@ import Reload from "../assets/reload.svg?react";
 import Full from "../assets/full.svg?react";
 import { useTranslation } from "react-i18next";
 import useLocationStore from "../store/locationStore";
+import Gps from "../assets/gps.svg?react";
+import useLanguageStore from "../store/languageStore";
+import useHospitalTypeStore from "../store/stateStore";
+
 
 const TempNaverMap = ({
   isPopupVisible,
@@ -20,10 +24,45 @@ const TempNaverMap = ({
   const popupRef = useRef(null);
 
   const setUserLocation = useLocationStore((state) => state.setUserLocation);
+  const setInitialUserLocation = useLocationStore((state) => state.setInitialUserLocation);
+  const initialUserLocation = useLocationStore((state) => state.initialUserLocation);
+  const didRunNearbySearch = useRef(false);
 
+  
+  const { language, setLanguage } = useLanguageStore();
   const { t, i18n } = useTranslation();
   const [popupVisible, setPopupVisible] = useState(isPopupVisible);
   const [popupPosition, setPopupPosition] = useState({ top: 5, left: 14 });
+  const DEFAULT_ZOOM=13;
+  const handleGoToUserLocation = () => {
+
+    mapRef.current.setZoom(DEFAULT_ZOOM);
+  
+};
+
+  
+  const handleGoToInitialLocation = () => {
+  const { lat, lon } = useLocationStore.getState().initialUserLocation || {};
+
+  if (!lat || !lon) {
+    console.warn("최초 위치가 설정되어 있지 않습니다.");
+    return;
+  }
+
+  const newPosition = new window.naver.maps.LatLng(lat, lon);
+
+  // 지도 중심 이동
+  if (mapRef.current) {
+    mapRef.current.setCenter(newPosition);
+  }
+
+  // 사용자 마커 이동
+  if (userMarkerRef.current) {
+    userMarkerRef.current.setPosition(newPosition);
+  }
+
+  setUserLocation(lat, lon);
+};
 
   useEffect(() => {
     setPopupVisible(isPopupVisible);
@@ -48,13 +87,17 @@ const TempNaverMap = ({
 
       setUserLocation(userLat, userLng);
 
+      setInitialUserLocation(userLat, userLng);
+
       const userLocation = new window.naver.maps.LatLng(userLat, userLng);
 
       const map = new window.naver.maps.Map(mapElementRef.current, {
         center: userLocation,
-        zoom: 13,
+        zoom: DEFAULT_ZOOM,
       });
       mapRef.current = map;
+
+      
 
       // 사용자 마커 생성
       const userMarker = new window.naver.maps.Marker({
@@ -141,6 +184,19 @@ const TempNaverMap = ({
     navigator.geolocation.getCurrentPosition(onPositionSuccess, onPositionError);
   }, [ setUserLocation]);
 
+  useEffect(() => {
+  if (
+    !didRunNearbySearch.current &&
+    initialUserLocation &&
+    initialUserLocation.lat &&
+    initialUserLocation.lon &&
+    typeof onSearchNearby === "function"
+  ) {
+    onSearchNearby();
+    didRunNearbySearch.current = true;
+  }
+}, [initialUserLocation, onSearchNearby]);
+
   // hospitalMarkers 변경 시 마커 추가/갱신
   useEffect(() => {
     if (!mapRef.current || !window.naver) return;
@@ -155,10 +211,13 @@ const TempNaverMap = ({
         position,
         map: mapRef.current,
         title: name || hpid || "병원",
-        icon: {
-          content:
-            '<div style="background:#e74c3c; border-radius:50%; width:14px; height:14px; border:2px solid white;"></div>',
+       icon: {
+          url: '/hospital.svg',
+          size: new window.naver.maps.Size(18, 18),
+          scaledSize: new window.naver.maps.Size(18, 18),
+          anchor: new window.naver.maps.Point(9, 9), // 중심으로 맞춤 (18의 절반)
         },
+
       });
 
       marker.addListener("click", () => {
@@ -186,6 +245,7 @@ const TempNaverMap = ({
     i18n.changeLanguage(language);
     setPopupVisible(false);
     togglePopup(false);
+    setLanguage(language);
   };
 
   useEffect(() => {
@@ -211,7 +271,7 @@ const TempNaverMap = ({
         <Reload />
         {t("search_nearby")}
       </TopCenterButton>
-      <TopCenterIcon>
+      <TopCenterIcon onClick={handleGoToUserLocation}>
         <Full style={{ width: "32px", height: "32px" }} />
       </TopCenterIcon>
 
@@ -237,6 +297,8 @@ const TempNaverMap = ({
           English
         </LanguageButton>
       </Popup>
+      <GpsIcon onClick={handleGoToInitialLocation} />
+
     </MapContainer>
   );
 };
@@ -306,3 +368,13 @@ const TopCenterIcon = styled.div`
   transform: translateX(-50%);
   z-index: 1;
 `;
+
+const GpsIcon= styled(Gps)`
+  position: absolute;
+  bottom: 20px;
+  right: 0;
+  transform: translateX(-50%);
+  z-index: 1;
+  width: 32px;
+  height: 32px;
+`
