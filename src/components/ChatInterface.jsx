@@ -6,7 +6,13 @@ import { ENDPOINTS } from "../constants/api";
 // React 컴포넌트
 function ChatInterface() {
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState([
+    {
+      role: "assistant",
+      content:
+        '안녕하세요! 응급/의료 정보 AI 챗봇입니다. 증상, 진료 과목, 응급 상황 등에 대해 질문해 주세요. 더 정확한 답변을 위해, "어제부터 열이 38도까지 오르고 목이 아파요"와 같이 구체적으로 질문해주시면 좋습니다.',
+    },
+  ]);
   const [isLoading, setIsLoading] = useState(false);
 
   // 메시지 목록이 업데이트될 때마다 맨 아래로 스크롤 하는 기능
@@ -86,18 +92,12 @@ function ChatInterface() {
       </ChatHeader>
 
       <MessagesContainer>
-        {messages.length === 0 ? (
-          <EmptyState>
-            <p>AI와 대화를 시작해보세요</p>
-          </EmptyState>
-        ) : (
-          messages.map((message, index) => (
-            // styled-component인 Message에 role prop을 전달하여 동적으로 스타일을 적용
-            <Message key={index} role={message.role}>
-              {message.content}
-            </Message>
-          ))
-        )}
+        {messages.map((message, index) => (
+          // styled-component인 Message에 role prop을 전달하여 동적으로 스타일을 적용
+          <Message key={index} role={message.role}>
+            {message.content}
+          </Message>
+        ))}
         {isLoading && (
           <Message role="assistant">
             <LoadingIndicator>
