@@ -10,7 +10,7 @@ import styled from "styled-components";
 import HospitalList from "./components/HospitalList";
 import HospitalItemBody from "./components/HospitalItemBody";
 import BottomSheet from "./components/BottomSheet";
-import useLocationStore from "./store/locationStore";
+import useLocationStore from "./store/locationStore"; // 위치 정보를 가져올 zustand 스토어
 import ChatModal from "./components/ChatModal";
 
 import { getEmergency, getEmergencyInfo, recommend } from "./api/emergencyApi";
@@ -55,21 +55,14 @@ function App() {
   // i18n 초기화
   const { t, i18n } = useTranslation();
 
-  const regionRef = useRef(null);
-  const districtRef = useRef(null);
   const fetchHospitalsRef = useRef(null);
 
   const [selected, setSelected] = useState("ER");
   const [isPopupVisible, setIsPopupVisible] = useState(false);
-  const [stage1dropdownOpen, setStage1DropdownOpen] = useState(false);
-  const [selectedRegion, setSelectedRegion] = useState("서울특별시");
-  const [stage2dropdownOpen, setStage2DropdownOpen] = useState(false);
-  const [selectedDistrict, setSelectedDistrict] = useState("강남구");
+
   const [DeptDropdown, setDeptDropdown] = useState(false);
   const [selectedHospital, setSelectedHospital] = useState(null);
 
-  const toggleStage1Dropdown = () => setStage1DropdownOpen((prev) => !prev);
-  const toggleStage2Dropdown = () => setStage2DropdownOpen((prev) => !prev);
   const toggleDeptDropdown = () => setDeptDropdown((prev) => !prev);
   const togglePopup = () => setIsPopupVisible((prev) => !prev);
 
@@ -84,7 +77,7 @@ function App() {
   const [selectedDept, setSelectedDept] = useState(null);
   const [noResultType, setNoResultType] = useState(null);
 
-  const fetchHospitalsNearby = async () => {
+  const fetchHospitalsNearby = useCallback(async () => {
     if (!userLocation) {
       alert("현재 위치를 먼저 확인해주세요.");
       return;
@@ -245,7 +238,7 @@ function App() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userLocation, hospitalType, selectedDept, language, t]);
 
   // 바텀 시트에 들어갈 상태
   const [hospitalDetail, setHospitalDetail] = useState({
@@ -304,27 +297,19 @@ function App() {
   ];
 
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (regionRef.current && !regionRef.current.contains(e.target)) {
-        setStage1DropdownOpen(false);
-      }
-      if (districtRef.current && !districtRef.current.contains(e.target)) {
-        setStage2DropdownOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [regionRef, districtRef]);
-
-  useEffect(() => {
     // 병원 타입 바뀔 때 기존 목록, 추천 병원 초기화
     setHospitalMarkers([]);
     setHospitalDetails([]);
     setRecommendedHospital(null);
   }, [hospitalType]);
+
+  useEffect(() => {
+    // Clinic 모드 && 진료과가 선택됨
+    if (hospitalType === "Clinic" && selectedDept) {
+      fetchHospitalsNearby();
+    }
+    // fetch 함수가 useCallback으로 감싸져 있으므로 안전하게 의존성 배열에 추가한다.
+  }, [selectedDept, hospitalType, fetchHospitalsNearby]);
 
   // chat 모달
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
