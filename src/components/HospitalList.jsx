@@ -8,8 +8,16 @@ import LoadingAnimation from "../assets/LoadingAnimation.gif";
 
 const isDev = false;
 
-export default function HospitalList({ hospitalList, type, recommendedHospital, isLoading ,noResultType,isopen,setShowHospitalDetail}) {
-  const language = useLanguageStore(state => state.language);
+export default function HospitalList({
+  hospitalList,
+  type,
+  recommendedHospital,
+  isLoading,
+  noResultType,
+  isopen,
+  setShowHospitalDetail,
+}) {
+  const language = useLanguageStore((state) => state.language);
   if (isDev) {
     return (
       <Wrapper>
@@ -36,7 +44,7 @@ export default function HospitalList({ hospitalList, type, recommendedHospital, 
                 icuInfo={recommendedHospital.beds}
                 reason={recommendedHospital.reason}
                 recommended={true}
-            onClick={() => setShowHospitalDetail(recommendedHospital.hpid)}
+                onClick={() => setShowHospitalDetail(recommendedHospital.hpid)}
               />
             </RecommendedWrapper>
           )}
@@ -76,38 +84,46 @@ export default function HospitalList({ hospitalList, type, recommendedHospital, 
                 )}
               </NoResultContainer>
             )}
-          {hospitalList.map((hospital, idx) => {
-          const name = language === "en" ? hospital.nameEn || hospital.name : hospital.name;
-          const address = language === "en" ? hospital.addressEn || hospital.address || hospital.addrEn || hospital.addr : hospital.address || hospital.addr;
+            {hospitalList.map((hospital, idx) => {
+              const name =
+                language === "en"
+                  ? hospital.nameEn || hospital.name
+                  : hospital.name;
+              const address =
+                language === "en"
+                  ? hospital.addressEn ||
+                    hospital.address ||
+                    hospital.addrEn ||
+                    hospital.addr
+                  : hospital.address || hospital.addr;
 
-          return type === "Clinic" ? (
-            <HospitalItem
-              key={idx}
-              name={name}
-              address={address}
-              tel={hospital.tel}
-              recommended={false}
-              type={'Clinic'}
-              isOpen={hospital.isOpen}
-              onClick={() => setShowHospitalDetail(hospital.hpid)}
-
-
-            />
-          ) : (
-            <HospitalItem
-              key={idx}
-              name={hospital.name}
-              address={hospital.addr}
-              tel={hospital.dutyTel3}
-              icuInfo={hospital.beds}
-              recommended={false}
-              type={'ER'}
-              onClick={() => setShowHospitalDetail(hospital.hpid)}
-
-            />
-          );
-        })}
-      </ListBody>
+              return type === "Clinic" ? (
+                <HospitalItem
+                  key={idx}
+                  name={name}
+                  address={address}
+                  tel={hospital.tel}
+                  recommended={false}
+                  type={"Clinic"}
+                  isOpen={hospital.isOpen}
+                  onClick={() => setShowHospitalDetail(hospital.hpid)}
+                />
+              ) : (
+                <HospitalItem
+                  key={idx}
+                  name={hospital.name}
+                  address={hospital.addr}
+                  tel={hospital.dutyTel3}
+                  icuInfo={hospital.beds}
+                  recommended={false}
+                  type={"ER"}
+                  onClick={() => setShowHospitalDetail(hospital.hpid)}
+                />
+              );
+            })}
+          </ListBody>
+        </>
+      )}
     </Wrapper>
   );
 }
