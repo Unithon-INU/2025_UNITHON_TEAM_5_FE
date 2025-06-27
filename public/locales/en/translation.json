@@ -26,5 +26,9 @@
   "initial_chat_message": "Hello! This is the emergency/medical information AI chatbot. Please ask questions about your symptoms, treatment subjects, emergencies, and more. For a more accurate answer, I would like you to ask specific questions such as 'My fever has reached 38 degrees since yesterday and my throat hurts.'",
   "chat_placeholder": "Type your message...",
   "sending": "Sending...",
-  "send": "Send"
+  "send": "Send",
+  "tel_na": "Phone number not provided",
+  "addr_na": "Address not provided",
+  "waiting": "waiting",
+  "na": "N/A"
 }
