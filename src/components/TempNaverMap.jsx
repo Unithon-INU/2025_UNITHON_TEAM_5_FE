@@ -5,6 +5,7 @@ import Full from "../assets/full.svg?react";
 import { useTranslation } from "react-i18next";
 import useLocationStore from "../store/locationStore";
 import Gps from "../assets/gps.svg?react";
+import GpsIcon from "../assets/GpsIcon.svg";
 import useLanguageStore from "../store/languageStore";
 import { getHospitalById } from "../api/hospitalDetailApi"; // 새로 만든 API 함수 임포트
 
@@ -340,7 +341,8 @@ hospitalMarkerRefs.current.push(marker);
           English
         </LanguageButton>
       </Popup>
-      <GpsIcon onClick={handleGoToInitialLocation} />
+      {/* <GpsIcon onClick={handleGoToInitialLocation} /> */}
+      <GpsImg src={GpsIcon} onClick={handleGoToInitialLocation} />
     </MapContainer>
   );
 };
@@ -415,7 +417,17 @@ const TopCenterIcon = styled.div`
   z-index: 1;
 `;
 
-const GpsIcon = styled(Gps)`
+// const GpsIcon = styled(Gps)`
+//   position: absolute;
+//   bottom: 20px;
+//   right: 0;
+//   transform: translateX(-50%);
+//   z-index: 1;
+//   width: 32px;
+//   height: 32px;
+// `;
+
+const GpsImg = styled.img`
   position: absolute;
   bottom: 20px;
   right: 0;
@@ -423,4 +435,6 @@ const GpsIcon = styled(Gps)`
   z-index: 1;
   width: 32px;
   height: 32px;
+
+  cursor: pointer;
 `;

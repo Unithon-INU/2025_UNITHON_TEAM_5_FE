@@ -1,4 +1,4 @@
-import React, { useState,useRef,useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
 import ReactDOM from "react-dom";
 
@@ -30,20 +30,19 @@ export default function HospitalItem({
 
   const { t, i18n } = useTranslation();
   const popupRef = useRef(null);
- const [popupPosition, setPopupPosition] = useState({ top: 100, left: 0 });
+  const [popupPosition, setPopupPosition] = useState({ top: 100, left: 0 });
 
-useEffect(() => {
-  if (isResonModalOpen) {
-    const windowWidth = window.innerWidth;
-    const modalWidth = 280; // PopupModal2 max-width와 맞추기
+  useEffect(() => {
+    if (isResonModalOpen) {
+      const windowWidth = window.innerWidth;
+      const modalWidth = 280; // PopupModal2 max-width와 맞추기
 
-    setPopupPosition({
-      top: 390, // 상단에서 100px 아래
-      left: (windowWidth - modalWidth) / 2,
-    });
-  }
-}, [isResonModalOpen]);
-
+      setPopupPosition({
+        top: 390, // 상단에서 100px 아래
+        left: (windowWidth - modalWidth) / 2,
+      });
+    }
+  }, [isResonModalOpen]);
 
   return (
     <Wrapper recommended={recommended} onClick={onClick}>
@@ -72,17 +71,16 @@ useEffect(() => {
             ? tel || t("tel_na")
             : hasIcuInfo
               ? tel || t("tel_na")
-              : t("addr_na")}
+              : t("tel_na")}
         </span>
-        
       </FirstArea>
 
       <SecondArea recommended={recommended}>
         {recommended && (
           <Pickdiv
-          ref={popupRef}
-          onMouseEnter={() => setIsResonModalOpen(true)}
-          onMouseLeave={() => setIsResonModalOpen(false)}
+            ref={popupRef}
+            onMouseEnter={() => setIsResonModalOpen(true)}
+            onMouseLeave={() => setIsResonModalOpen(false)}
           >
             <img src={AIpick} />
           </Pickdiv>
@@ -125,18 +123,22 @@ useEffect(() => {
       )}
       {isResonModalOpen &&
         ReactDOM.createPortal(
-          <PopupModal2 style={popupPosition} onClick={(e) => e.stopPropagation()}>
+          <PopupModal2
+            style={popupPosition}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div>{reason}</div>
           </PopupModal2>,
           document.body
         )}
-
     </Wrapper>
   );
 }
 
 const Wrapper = styled.div`
-  border-bottom: 1px solid gray;
+  border-bottom: 0.5px solid
+    ${({ recommended }) => (recommended ? "lightpink" : "gray")};
+
   width: 100%;
   height: 6rem;
   background: ${({ recommended }) =>
@@ -176,7 +178,7 @@ const SecondArea = styled.div`
     recommended ? "space-between" : "flex-end"};
   align-items: flex-end;
   align-items: flex-end;
-    position: relative;
+  position: relative;
 
   color: black;
 
@@ -212,12 +214,7 @@ const LeftBeds = styled.div`
 const Pickdiv = styled.div`
   position: relative;
   display: inline-block;
-
- 
 `;
-
-
-
 
 const AddressRow = styled.div`
   display: flex;
@@ -248,7 +245,7 @@ const PopupModal = styled.div`
 const PopupModal2 = styled.div`
   position: absolute;
   top: -15px;
-  
+
   background: rgba(255, 255, 255, 0.8);
   padding: 8px 12px;
   border-radius: 8px;

@@ -6,12 +6,14 @@ import useHospitalTypeStore from "../store/stateStore";
 
 const ToggleSwitch = ({ selected, setSelected }) => {
   const { t } = useTranslation(); // useTranslation 훅 사용
-  const setHospitalType = useHospitalTypeStore((state) => state.setHospitalType);
+  const setHospitalType = useHospitalTypeStore(
+    (state) => state.setHospitalType
+  );
 
   // 클릭 시 호출할 함수 따로 선언
   const handleSelect = (type) => {
-    setSelected(type);          // 외부 상태 업데이트
-    setHospitalType(type);      // Zustand 상태 업데이트
+    setSelected(type); // 외부 상태 업데이트
+    setHospitalType(type); // Zustand 상태 업데이트
   };
 
   return (
@@ -20,7 +22,10 @@ const ToggleSwitch = ({ selected, setSelected }) => {
       <Tab active={selected === "ER"} onClick={() => handleSelect("ER")}>
         {t("er_type")} {/* 'er_type' 번역 키 사용 */}
       </Tab>
-      <Tab active={selected === "Clinic"} onClick={() => handleSelect("Clinic")}>
+      <Tab
+        active={selected === "Clinic"}
+        onClick={() => handleSelect("Clinic")}
+      >
         {t("clinic_type")} {/* 'clinic_type' 번역 키 사용 */}
       </Tab>
     </Wrapper>
@@ -53,7 +58,8 @@ const Tab = styled.button`
 
 const Slider = styled.div`
   position: absolute;
-  left: ${({ active }) => (active === "ER" ? "0px" : "calc(50% + 2px)")};
+  /* left: ${({ active }) => (active === "ER" ? "0px" : "calc(50% + 2px)")}; */
+  left: ${({ active }) => (active === "ER" ? "0" : "50%")};
   width: 50%;
   height: 100%;
   background-color: #fff;
