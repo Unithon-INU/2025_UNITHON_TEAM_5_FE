@@ -45,7 +45,9 @@ function App() {
   const userLocation = useLocationStore((state) => state.userLocation);
   const hospitalType = useHospitalTypeStore((state) => state.hospitalType);
   const language = useLanguageStore((state) => state.language);
+  const setLanguage = useLanguageStore((state) => state.setLanguage);
 
+ 
   const [hospitalMarkers, setHospitalMarkers] = useState([]);
   const [hospitalDetails, setHospitalDetails] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -86,7 +88,9 @@ function App() {
         const recommendResponse = await recommend(
           userLocation.lat,
           userLocation.lon,
-          10
+          10,
+          language
+
         );
         const recommendedHpid = recommendResponse?.recommendedHospitalHpid;
 
@@ -260,8 +264,9 @@ function App() {
   const handleMarkerClick = useCallback((hpid) => {
     setSelectedHospital(hpid);
     setShowHospitalDetail(true);
+   console.log('hpid', hpid);
   }, []);
-
+  
   const deptList = [
     { name: "departments.internal_medicine", code: "D001" },
     { name: "departments.pediatrics", code: "D002" },
@@ -317,6 +322,10 @@ function App() {
       };
     }
   }, [DeptDropdown]);
+   useEffect(() => {
+    const storedLang = localStorage.getItem("i18nextLng") || "ko";
+    setLanguage(storedLang); // ✅ i18nextLng 값을 전역 상태에도 반영
+  }, []);
 
   // chat 모달
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
@@ -369,7 +378,9 @@ function App() {
         recommendedHospital={recommendedHospital}
         isLoading={isLoading}
         noResultType={noResultType}
+        setShowHospitalDetail={handleMarkerClick}
       />
+      {showHospitalDetail && <BottomSheet onClose={() => setShowHospitalDetail(false)} />}
 
       <BottomSheet
         isOpen={showHospitalDetail}

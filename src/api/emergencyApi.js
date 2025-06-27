@@ -44,12 +44,13 @@ export const getEmergencyInfo = async (lat, lng, radiusKm) => {
   }
 };
 
-export const recommend = async (lat, lng, radiusKm) => {
+export const recommend = async (lat, lng, radiusKm,language) => {
   try {
     const params = {
       lat,
       lng,
       radiusKm,
+      language,
     };
 
     const response = await apiClient.get('/gemini/recommend-emergency', { params });
