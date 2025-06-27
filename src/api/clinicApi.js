@@ -11,13 +11,14 @@ const apiClient = axios.create({
 });
 
 // 주변 응급실 위치 요청
-export const getClinic = async (lat, lng, department,language) => {
+export const getClinic = async (lat, lng, department,language,currentTime) => {
   try {
     const params = {
       lat,
       lng,
       department,
       language,
+      currentTime,
     };
 
     const response = await apiClient.get('/clinic/department', { params });

@@ -81,6 +81,10 @@ function App() {
 
   const prevSelectedDept = useRef(null);
 
+  const now = new Date();
+  const kstOffset = 9 * 60 * 60 * 1000; // 9시간 (밀리초)
+  const kstDate = new Date(now.getTime() + kstOffset);
+  const currentTime = kstDate.toISOString().split('.')[0]; // 밀리초 제거
   const fetchHospitalsNearby = useCallback(async () => {
     if (!userLocation) {
       alert("현재 위치를 먼저 확인해주세요.");
@@ -212,7 +216,8 @@ function App() {
           userLocation.lat,
           userLocation.lon,
           selectedDept,
-          language
+          language,
+          currentTime
         );
         hospitals = clinicData || [];
 
