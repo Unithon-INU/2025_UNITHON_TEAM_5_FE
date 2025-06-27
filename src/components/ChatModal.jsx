@@ -7,8 +7,9 @@ const ModalBackdrop = styled.div`
   position: fixed; /* 화면에 고정 */
   top: 0;
   left: center;
-  /* width: 100%; */
-  width: 393px;
+  width: 100%;
+  /* width: 393px; */
+  max-width: 480px;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.6); /* 반투명 배경 */
   display: flex;
