@@ -24,7 +24,6 @@ export default function HospitalItem({
   const [isNameModalOpen, setIsNameModalOpen] = useState(false);
   const [isResonModalOpen, setIsResonModalOpen] = useState(false);
 
-
   const hasIcuInfo = icuInfo && icuInfo.hvec != null;
 
   const { t, i18n } = useTranslation();
@@ -59,9 +58,7 @@ export default function HospitalItem({
               : t("addr_na")}
         </span>
         <AddressRow>
-          <AddressText>
-            {reason}
-          </AddressText>
+          <AddressText>{reason}</AddressText>
           {reason && (
             <DropdownBtn onClick={() => setIsResonModalOpen(!isResonModalOpen)}>
               <RotatingIcon open={isResonModalOpen} size={16} />
@@ -71,37 +68,34 @@ export default function HospitalItem({
       </FirstArea>
 
       <SecondArea recommended={recommended}>
-  {recommended && (
-    <Pickdiv>
-      <img src={AIPickIcon} />
-    </Pickdiv>
-  )}
-
-  {type === "Clinic" ? (
-    // Clinic이면 Bed 대신 isOpen 상태 표시
-    <LeftBeds $bgColor={isOpen ? "#3A78EB" : "#909090"}>
-      <span>{isOpen ? "영업중" : "휴무중"}</span> {/*국제화필요*/}
-    </LeftBeds>
-  ) : (
-    // 기존 ICU 정보 처리
-    hasIcuInfo && icuInfo.hvs01 != null ? (
-      icuInfo.hvec < 0 ? (
-        <LeftBeds $bgColor="#FF847C">
-          {`대기 : ${Math.abs(icuInfo.hvec)}`}
-        </LeftBeds>
-      ) : (
-        <LeftBeds>
-          <Bed /> {icuInfo.hvec}
-        </LeftBeds>
-      )
-    ) : (
-      <LeftBeds $bgColor="#909090">
-        <span>{t("na")}</span>
-      </LeftBeds>
-    )
-  )}
-</SecondArea>
-
+        {recommended && (
+          <Pickdiv>
+            <img src={AIPickIcon} />
+          </Pickdiv>
+        )}
+        {type === "Clinic" ? (
+          // Clinic이면 Bed 대신 isOpen 상태 표시
+          <LeftBeds $bgColor={isOpen ? "#3A78EB" : "#909090"}>
+            <span>{isOpen ? t("open_now") : t("closed_today")}</span>{" "}
+            {/*국제화필요*/}
+          </LeftBeds>
+        ) : // 기존 ICU 정보 처리
+        hasIcuInfo && icuInfo.hvs01 != null ? (
+          icuInfo.hvec < 0 ? (
+            <LeftBeds $bgColor="#FF847C">
+              {`대기 : ${Math.abs(icuInfo.hvec)}`}
+            </LeftBeds>
+          ) : (
+            <LeftBeds>
+              <Bed /> {icuInfo.hvec}
+            </LeftBeds>
+          )
+        ) : (
+          <LeftBeds $bgColor="#909090">
+            <span>{t("na")}</span>
+          </LeftBeds>
+        )}
+      </SecondArea>
 
       {/* 🔽 이 부분이 팝업 */}
       {isNameModalOpen && (
@@ -141,7 +135,7 @@ const Wrapper = styled.div`
 `;
 
 const FirstArea = styled.div`
-  font-family:'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 14px;
   width: 75%;
   display: flex;

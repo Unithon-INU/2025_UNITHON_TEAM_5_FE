@@ -19,6 +19,7 @@
   "regular_day_off": "휴무일",
   "er_available": "응급실 진료 가능",
   "open_now": "영업중",
+  "closed_today": "휴무중",
   "clinic_hours_format": "{{startTime}} - {{endTime}} (종합병원)",
   "hours_format": "{{dayRange}}: {{startTime}} - {{endTime}}",
   "closed_format": "{{dayRange}}: {{dayOffText}}",
@@ -30,5 +31,24 @@
   "tel_na": "전화번호 미제공",
   "addr_na": "주소 미제공",
   "waiting": "대기",
-  "na": "미제공"
+  "na": "미제공",
+  "select_dept": "진료과 선택",
+  "select_dept_prompt": "진료과를 먼저 선택해주세요.",
+  "departments": {
+    "internal_medicine": "내과",
+    "surgery": "외과",
+    "orthopedics": "정형외과",
+    "neurology": "신경과",
+    "neurosurgery": "신경외과",
+    "dermatology": "피부과",
+    "ent": "이비인후과",
+    "ophthalmology": "안과",
+    "urology": "비뇨기과",
+    "obstetrics_gynecology": "산부인과",
+    "pediatrics": "소아청소년과",
+    "psychiatry": "정신건강의학과",
+    "family_medicine": "가정의학과",
+    "emergency_medicine": "응급의학과",
+    "dentistry": "치과"
+  }
 }
