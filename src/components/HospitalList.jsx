@@ -70,7 +70,7 @@ export default function HospitalList({ hospitalList, type, recommendedHospital, 
 
 const Wrapper = styled.div`
   /* 필요 시 스타일 추가 */
- 
+  
   overflow-y: auto;
   scrollbar-width: none;
 

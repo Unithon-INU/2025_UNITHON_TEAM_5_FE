@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useState,useRef,useEffect } from "react";
 import styled from "styled-components";
+import ReactDOM from "react-dom";
 
 // icons
 import PickBackground from "../assets/aipickback.svg";
 import Bed from "../assets/bed.svg?react";
 import { IoIosArrowDown } from "react-icons/io"; // 화살표 아이콘
-import AIPickIcon from "../assets/AIPickIcon.svg";
+import AIpick from "../assets/AIpick.svg";
 
 // i18n
 import { useTranslation } from "react-i18next";
@@ -27,6 +28,21 @@ export default function HospitalItem({
   const hasIcuInfo = icuInfo && icuInfo.hvec != null;
 
   const { t, i18n } = useTranslation();
+  const popupRef = useRef(null);
+ const [popupPosition, setPopupPosition] = useState({ top: 100, left: 0 });
+
+useEffect(() => {
+  if (isResonModalOpen) {
+    const windowWidth = window.innerWidth;
+    const modalWidth = 280; // PopupModal2 max-width와 맞추기
+
+    setPopupPosition({
+      top: 390, // 상단에서 100px 아래
+      left: (windowWidth - modalWidth) / 2,
+    });
+  }
+}, [isResonModalOpen]);
+
 
   return (
     <Wrapper recommended={recommended}>
@@ -57,22 +73,20 @@ export default function HospitalItem({
               ? tel || t("tel_na")
               : t("addr_na")}
         </span>
-        <AddressRow>
-          <AddressText>{reason}</AddressText>
-          {reason && (
-            <DropdownBtn onClick={() => setIsResonModalOpen(!isResonModalOpen)}>
-              <RotatingIcon open={isResonModalOpen} size={16} />
-            </DropdownBtn>
-          )}
-        </AddressRow>
+        
       </FirstArea>
 
       <SecondArea recommended={recommended}>
         {recommended && (
-          <Pickdiv>
-            <img src={AIPickIcon} />
+          <Pickdiv
+          ref={popupRef}
+          onMouseEnter={() => setIsResonModalOpen(true)}
+          onMouseLeave={() => setIsResonModalOpen(false)}
+          >
+            <img src={AIpick} />
           </Pickdiv>
         )}
+
         {type === "Clinic" ? (
           // Clinic이면 Bed 대신 isOpen 상태 표시
           <LeftBeds $bgColor={isOpen ? "#3A78EB" : "#909090"}>
@@ -108,11 +122,14 @@ export default function HospitalItem({
           <div>{address}</div>
         </PopupModal>
       )}
-      {isResonModalOpen && (
-        <PopupModal onClick={(e) => e.stopPropagation()}>
-          <div>{reason}</div>
-        </PopupModal>
-      )}
+      {isResonModalOpen &&
+        ReactDOM.createPortal(
+          <PopupModal2 style={popupPosition} onClick={(e) => e.stopPropagation()}>
+            <div>{reason}</div>
+          </PopupModal2>,
+          document.body
+        )}
+
     </Wrapper>
   );
 }
@@ -120,7 +137,7 @@ export default function HospitalItem({
 const Wrapper = styled.div`
   border-bottom: 1px solid gray;
   width: 100%;
-  height: ${({ recommended }) => (recommended ? "7rem" : "6rem")};
+  height: 6rem;
   background: ${({ recommended }) =>
     recommended ? "linear-gradient(to bottom, #BCE1FF, #FFE1FC)" : "white"};
 
@@ -132,6 +149,7 @@ const Wrapper = styled.div`
   }
   padding: 8px 16px;
   box-sizing: border-box;
+  position: relative;
 `;
 
 const FirstArea = styled.div`
@@ -157,6 +175,7 @@ const SecondArea = styled.div`
     recommended ? "space-between" : "flex-end"};
   align-items: flex-end;
   align-items: flex-end;
+    position: relative;
 
   color: black;
 
@@ -190,11 +209,14 @@ const LeftBeds = styled.div`
 `;
 
 const Pickdiv = styled.div`
-  width: 80px;
-  padding-left: 2px;
-  box-sizing: border-box;
-  font-family: "Fredoka One", cursive;
+  position: relative;
+  display: inline-block;
+
+ 
 `;
+
+
+
 
 const AddressRow = styled.div`
   display: flex;
@@ -217,6 +239,20 @@ const PopupModal = styled.div`
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
   z-index: 10;
+  width: max-content;
+  max-width: 280px;
+  font-size: 14px;
+  word-break: break-word;
+`;
+const PopupModal2 = styled.div`
+  position: absolute;
+  top: -15px;
+  
+  background: rgba(255, 255, 255, 0.8);
+  padding: 8px 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
   width: max-content;
   max-width: 280px;
   font-size: 14px;
