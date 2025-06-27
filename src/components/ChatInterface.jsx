@@ -194,6 +194,8 @@ const ChatHeader = styled.div`
   justify-content: space-between;
   align-items: center;
 
+  position: relative;
+
   h1 {
     margin: 0;
     font-size: 1.25rem;
@@ -201,7 +203,13 @@ const ChatHeader = styled.div`
 
   img.chatbot {
     width: 3.25rem;
-    transform: translate(-1rem, 0.2rem);
+
+    position: absolute;
+    left: 50%; /* 1. 왼쪽에서 50% 위치로 이동 */
+    bottom: 0.75rem;
+    transform: translateX(
+      -50%
+    ); /* 3. 아이콘 자체 너비의 50%만큼 왼쪽으로 당겨와 중앙 정렬 */
   }
 `;
 
