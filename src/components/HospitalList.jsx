@@ -3,7 +3,7 @@ import styled from "styled-components";
 import HospitalItem from "./HospitalItem";
 import useLanguageStore from "../store/languageStore";
 
-export default function HospitalList({ hospitalList, type, recommendedHospital, isLoading ,noResultType,isopen}) {
+export default function HospitalList({ hospitalList, type, recommendedHospital, isLoading ,noResultType,isopen,setShowHospitalDetail}) {
   const language = useLanguageStore(state => state.language);
 
   if (isLoading) return <div>Loading...</div>;
@@ -20,6 +20,7 @@ export default function HospitalList({ hospitalList, type, recommendedHospital, 
             icuInfo={recommendedHospital.beds}
             reason={recommendedHospital.reason}
             recommended={true}
+            onClick={() => setShowHospitalDetail(recommendedHospital.hpid)}
           />
         </RecommendedWrapper>
       )}
@@ -47,6 +48,8 @@ export default function HospitalList({ hospitalList, type, recommendedHospital, 
               recommended={false}
               type={'Clinic'}
               isOpen={hospital.isOpen}
+              onClick={() => setShowHospitalDetail(hospital.hpid)}
+
 
             />
           ) : (
@@ -58,6 +61,8 @@ export default function HospitalList({ hospitalList, type, recommendedHospital, 
               icuInfo={hospital.beds}
               recommended={false}
               type={'ER'}
+              onClick={() => setShowHospitalDetail(hospital.hpid)}
+
             />
           );
         })}

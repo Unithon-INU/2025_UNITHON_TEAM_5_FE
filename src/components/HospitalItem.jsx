@@ -20,6 +20,7 @@ export default function HospitalItem({
   recommended,
   type,
   isOpen,
+  onClick 
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isNameModalOpen, setIsNameModalOpen] = useState(false);
@@ -45,7 +46,7 @@ useEffect(() => {
 
 
   return (
-    <Wrapper recommended={recommended}>
+    <Wrapper recommended={recommended} onClick={onClick}>
       <FirstArea>
         <NameRow>
           <NameText>

@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import useLocationStore from "../store/locationStore";
 import Gps from "../assets/gps.svg?react";
 import useLanguageStore from "../store/languageStore";
-import useHospitalTypeStore from "../store/stateStore";
+import { getHospitalById } from "../api/hospitalDetailApi"; // 새로 만든 API 함수 임포트
 
 const TempNaverMap = ({
   isPopupVisible,
@@ -31,11 +31,14 @@ const TempNaverMap = ({
   );
   const didRunNearbySearch = useRef(false);
 
-  const { language, setLanguage } = useLanguageStore();
+  const language = useLanguageStore((state) => state.language);
+  const setLanguage = useLanguageStore((state) => state.setLanguage);
   const { t, i18n } = useTranslation();
 
   const [popupPosition, setPopupPosition] = useState({ top: 5, left: 14 });
   const DEFAULT_ZOOM = 13;
+
+  
 
   const handleGoToInitialLocation = () => {
     const { lat, lon } = useLocationStore.getState().initialUserLocation || {};
@@ -101,19 +104,7 @@ const TempNaverMap = ({
       });
       userMarkerRef.current = userMarker;
 
-      userMarker.addListener("click", () => {
-        infoWindowRef.current.setContent(
-          `<div style="padding:8px;">${t("current_location")}</div>`
-        );
-        if (
-          !infoWindowRef.current.getMap() ||
-          infoWindowRef.current.getMap() !== map
-        ) {
-          infoWindowRef.current.open(map, userMarker);
-        }
-        onMarkerClick && onMarkerClick();
-      });
-
+      
       // 지도 클릭 시 사용자 마커 위치 이동 및 InfoWindow 닫기
       map.addListener("click", (e) => {
         const lat = e.coord.lat();
@@ -178,17 +169,19 @@ const TempNaverMap = ({
   }, [setUserLocation]);
 
   useEffect(() => {
-    if (
-      !didRunNearbySearch.current &&
-      initialUserLocation &&
-      initialUserLocation.lat &&
-      initialUserLocation.lon &&
-      typeof onSearchNearby === "function"
-    ) {
-      onSearchNearby();
-      didRunNearbySearch.current = true;
-    }
-  }, [initialUserLocation, onSearchNearby]);
+
+  if (
+    !didRunNearbySearch.current &&
+    initialUserLocation &&
+    initialUserLocation.lat &&
+    initialUserLocation.lon &&
+    typeof onSearchNearby === "function"
+  ) {
+    onSearchNearby(); // ✅ 언어 인자로 전달
+    didRunNearbySearch.current = true;
+  }
+}, [initialUserLocation, onSearchNearby]);
+
 
   // hospitalMarkers 변경 시 마커 추가/갱신
   useEffect(() => {
@@ -212,18 +205,79 @@ const TempNaverMap = ({
         },
       });
 
-      marker.addListener("click", () => {
-        infoWindowRef.current.setContent(
-          `<div style="padding:8px;"><strong>${name || "병원"}</strong><br/>ID: ${hpid}</div>`
-        );
+      const customInfoWindowEl = document.createElement("div");
+      customInfoWindowEl.className = "custom-info-window";
+      customInfoWindowEl.innerHTML = `
+        <div class="info-box">
+          <strong>${name || "병원"}</strong><br/>
+        
+        </div>
+      `;
 
-        // 💡 기존 InfoWindow를 강제로 새 위치로 열어줌
-        infoWindowRef.current.open(mapRef.current, marker);
+    const customInfoWindow = new window.naver.maps.InfoWindow({
+      content: customInfoWindowEl,
+      borderWidth: 0,
+      disableAnchor: true,
+      backgroundColor: "transparent",
+      pixelOffset: new window.naver.maps.Point(0, -20),
+    });
 
-        onMarkerClick && onMarkerClick(hpid);
-      });
+      marker.addListener("click", async () => {
+  // 병원 기본 이름만 먼저 보여줌 (로딩 중 상태 대비)
+  customInfoWindowEl.innerHTML = `
+    <div class="info-box">
+      <strong style="color:#3A78EB; font-weight: 600;">${name || "병원"}</strong><br/>
+      <span>정보를 불러오는 중...</span>
+    </div>
+  `;
+  customInfoWindow.open(mapRef.current, marker);
 
-      hospitalMarkerRefs.current.push(marker);
+  // API 요청
+  try {
+  const data = await getHospitalById(hpid);
+
+  const contentHTML = `
+    <div class="info-box">
+      <div class="hospital-title" style="color:#3A78EB; font-weight:600;">${data.dutyNameEn || "병원"}</div>
+      <div style="font-size:13px;">${data.dutyName || "병원 상세명 없음"}</div>
+      <div style="font-size:13px; color:#666;">${data.dutyTel1 || "연락처 없음"}</div>
+    </div>
+  `;
+
+  customInfoWindowEl.innerHTML = contentHTML;
+
+  // 실제 DOM 삽입 후 줄 수 측정
+  const titleElement = customInfoWindowEl.querySelector(".hospital-title");
+
+  // 강제로 DOM 반영 후 측정 (줄 수 계산)
+  setTimeout(() => {
+    const lineHeight = 18; // 예상 줄 높이 (px)
+    const lines = Math.ceil(titleElement.clientHeight / lineHeight);
+
+    // 기본 offset에서 + 줄 수에 따라 5~10px씩 추가
+    const offsetY = 5 + (lines - 2) * 5;
+
+    customInfoWindow.setOptions({
+      pixelOffset: new window.naver.maps.Point(0, -offsetY),
+    });
+
+    customInfoWindow.open(mapRef.current, marker);
+  }, 0);
+} catch (err) {
+  customInfoWindowEl.innerHTML = `
+    <div class="info-box">
+      <strong style="color:#3A78EB;">${name || "병원"}</strong><br/>
+      <span style="color:red;">정보를 불러오지 못했습니다.</span>
+    </div>
+  `;
+  customInfoWindow.open(mapRef.current, marker);
+}
+
+
+  onMarkerClick && onMarkerClick(hpid);
+});
+
+hospitalMarkerRefs.current.push(marker);
     });
   }, [hospitalMarkers, onMarkerClick]);
 
