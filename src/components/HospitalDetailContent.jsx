@@ -47,33 +47,43 @@ const transformData = (data, lang) => {
     8: "public_holiday",
   };
   const openingHours = [];
-  let tempGroup = null;
+  // let tempGroup = null;
 
-  for (let i = 1; i <= 8; i++) {
+  // 1. 평일(월-금) 그룹핑
+  let weekdayGroup = null;
+  for (let i = 1; i <= 5; i++) {
     const startTime = data[`dutyTime${i}s`];
     const endTime = data[`dutyTime${i}c`];
-    const currentDayLabel = dayLabels[i];
 
     if (
-      tempGroup &&
-      tempGroup.startTime === startTime &&
-      tempGroup.endTime === endTime
+      weekdayGroup &&
+      weekdayGroup.startTime === startTime &&
+      weekdayGroup.endTime === endTime
     ) {
-      tempGroup.days.push(currentDayLabel);
+      weekdayGroup.days.push(dayLabels[i]);
     } else {
-      if (tempGroup) openingHours.push(tempGroup);
-      tempGroup = {
-        days: [currentDayLabel],
-        startTime: startTime,
-        endTime: endTime,
+      if (weekdayGroup) openingHours.push(weekdayGroup);
+      weekdayGroup = {
+        days: [dayLabels[i]],
+        startTime,
+        endTime,
         isClosed: !startTime,
       };
     }
   }
-  if (tempGroup) openingHours.push(tempGroup);
+  if (weekdayGroup) openingHours.push(weekdayGroup);
 
-  // 2. 오늘 운영 정보 찾기
-  // JS의 getDay()는 일요일=0, 월요일=1... 이고 API는 월요일=1, 화요일=2...일요일=7
+  // 2. 주말 및 공휴일 개별 추가
+  for (let i = 6; i <= 8; i++) {
+    const startTime = data[`dutyTime${i}s`];
+    openingHours.push({
+      days: [dayLabels[i]],
+      startTime,
+      endTime: data[`dutyTime${i}c`],
+      isClosed: !startTime,
+    });
+  }
+
   const todayIndex = new Date().getDay();
   const apiDayIndex = todayIndex === 0 ? 7 : todayIndex;
   const openToday = {
@@ -81,15 +91,16 @@ const transformData = (data, lang) => {
     endTime: data[`dutyTime${apiDayIndex}c`],
   };
 
-  // 3. 최종 데이터 객체 반환
   return {
     name: lang === "en" ? data.dutyNameEn : data.dutyName,
     nameOriginal: lang === "en" ? data.dutyName : data.dutyNameEn,
     address: lang === "en" ? data.dutyAddrEn : data.dutyAddr,
     phone: data.dutyTel1,
-    hasER: !!data.dutyTel3, // 응급실 전화번호 유무로 판단
-    hasClinic: data.dutyDivNam !== "응급의료기관", // 예시: 분류명으로 일반진료 유무 판단
-    openingHours,
+    hasER: !!data.dutyTel3,
+    hasClinic: data.dutyDivNam !== "응급의료기관",
+    openingHours: openingHours.filter(
+      (rule) => rule.days && rule.days.length > 0
+    ),
     openToday,
   };
 };
@@ -127,6 +138,25 @@ function HospitalDetailContent({ hpid }) {
 
     fetchHospitalDetails();
   }, [hpid, i18n.language]); // hpid나 언어가 바뀔 때 다시 호출
+
+  // 디버깅용 useEffect
+  useEffect(() => {
+    if (hospitalData) {
+      console.log("✅ 병원 정보 업데이트됨:", hospitalData);
+    }
+  }, [hospitalData]);
+
+  const dayKeys = {
+    0: "sun",
+    1: "mon",
+    2: "tue",
+    3: "wed",
+    4: "thu",
+    5: "fri",
+    6: "sat",
+  };
+  const todayKey = dayKeys[new Date().getDay()];
+  const todayTranslated = t(todayKey);
 
   if (isLoading) {
     return <StatusContainer>{t("loading")}...</StatusContainer>;
@@ -181,6 +211,7 @@ function HospitalDetailContent({ hpid }) {
             <img src={ClockIcon} alt="time icon" />
             <span>{t("open_today")}</span>
             <EmphasizedText>
+              ({todayTranslated}){" "}
               {t("clinic_hours_format", {
                 startTime: formatTime(
                   hospitalData.openToday.startTime,
@@ -198,6 +229,30 @@ function HospitalDetailContent({ hpid }) {
         <OpeningHours>
           <EmphasizedText>{t("opening_hours_clinic")}</EmphasizedText>
           {hospitalData.openingHours.map((rule, index) => {
+            const firstDay = t(rule.days[0]);
+            const lastDay = t(rule.days[rule.days.length - 1]);
+            const dayRangeText =
+              rule.days.length > 1 ? `${firstDay} - ${lastDay}` : firstDay;
+
+            return (
+              <InfoRow key={index}>
+                <TimeInfo>
+                  <DayLabel>• {dayRangeText}</DayLabel>
+                  {rule.isClosed ? (
+                    <TimeValue isClosed={true}>
+                      {t("regular_day_off")}
+                    </TimeValue>
+                  ) : (
+                    <TimeValue>
+                      {formatTime(rule.startTime, i18n.language)} -{" "}
+                      {formatTime(rule.endTime, i18n.language)}
+                    </TimeValue>
+                  )}
+                </TimeInfo>
+              </InfoRow>
+            );
+          })}
+          {/* {hospitalData.openingHours.map((rule, index) => {
             const firstDay = t(rule.days[0]);
             const lastDay = t(rule.days[rule.days.length - 1]);
             const dayRangeText =
@@ -223,7 +278,7 @@ function HospitalDetailContent({ hpid }) {
                 </p>
               );
             }
-          })}
+          })} */}
         </OpeningHours>
 
         {hospitalData.hasER && (
@@ -297,8 +352,7 @@ const HospitalTypeER = styled(HospitalTypeGeneral)`
 
 const InfoArea = styled.div`
   width: 100%;
-  padding: 20px;
-  /* padding: 0.5rem 1.25rem; */
+  padding: 0.5rem 1.25rem;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -314,16 +368,17 @@ const TypeArea = styled.div`
 const TitleArea = styled.div`
   width: 100%;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   margin: 0.5rem 0 0.5rem 0.25rem;
 
   span {
     color: #3a78eb;
-    font-family: Roboto;
+    font-family: Inter;
     font-size: 1.25rem;
     font-weight: 700;
     line-height: 1.25rem;
+    margin-right: 0.5rem;
   }
 `;
 
@@ -335,11 +390,11 @@ const OriginalName = styled.span`
 
 const StatusOpen = styled.div`
   border-radius: 1rem;
-  border: 0.75px solid #3a78eb;
+  border: 1px solid #3a78eb;
   background: #f9f9f9;
   width: 5.75rem;
   height: 1.5rem;
-  margin-right: 4px;
+  margin: 0 0.25rem;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -401,4 +456,24 @@ const OpeningHours = styled.div`
   p {
     margin: 4px 0;
   }
+`;
+
+const TimeInfo = styled.div`
+  display: grid;
+  /* 1열(요일)은 100px 고정 너비, 2열(시간)은 나머지 공간을 차지 */
+  grid-template-columns: 100px auto;
+  gap: 1rem; /* 두 열 사이의 간격 */
+  align-items: center; /* 세로 중앙 정렬 */
+  width: 100%;
+  /* margin: 8px 0; */
+`;
+
+const DayLabel = styled.span`
+  font-weight: 500;
+  color: #565656;
+`;
+
+const TimeValue = styled.span`
+  font-weight: 600;
+  color: ${(props) => (props.isClosed ? "#999" : "#333")};
 `;
