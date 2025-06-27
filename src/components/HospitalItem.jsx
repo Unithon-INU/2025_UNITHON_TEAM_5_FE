@@ -1,8 +1,14 @@
 import React, { useState } from "react";
 import styled from "styled-components";
+
+// icons
 import PickBackground from "../assets/aipickback.svg";
 import Bed from "../assets/bed.svg?react";
 import { IoIosArrowDown } from "react-icons/io"; // 화살표 아이콘
+import AIPickIcon from "../assets/AIPickIcon.svg";
+
+// i18n
+import { useTranslation } from "react-i18next";
 
 export default function HospitalItem({
   name,
@@ -14,6 +20,8 @@ export default function HospitalItem({
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const hasIcuInfo = icuInfo && icuInfo.hvec != null;
+
+  const { t, i18n } = useTranslation();
 
   return (
     <Wrapper recommended={recommended}>
@@ -34,28 +42,50 @@ export default function HospitalItem({
 
         <span>
           {type === "Clinic"
-            ? tel || "전화번호 없음"
+            ? tel || t("tel_na")
             : hasIcuInfo
-              ? tel || "전화번호 없음"
-              : "정보를 제공하지 않음"}
+              ? tel || t("tel_na")
+              : t("addr_na")}
         </span>
       </FirstArea>
 
       <SecondArea recommended={recommended}>
-        {recommended && <Pickdiv>AI PICK!</Pickdiv>}
-        <LeftBeds>
+        {recommended && (
+          <Pickdiv>
+            <img src={AIPickIcon} />
+          </Pickdiv>
+        )}
+        {/* <LeftBeds>
           {hasIcuInfo && icuInfo.hvs01 != null ? (
             icuInfo.hvec < 0 ? (
-              `${Math.abs(icuInfo.hvec)}대기`
+              `대기 : ${Math.abs(icuInfo.hvec)}`
             ) : (
               <>
                 <Bed /> {icuInfo.hvec}
               </>
             )
           ) : (
-            0
+            <span>{t("na")}</span>
           )}
-        </LeftBeds>
+        </LeftBeds> */}
+
+        {hasIcuInfo && icuInfo.hvs01 != null ? (
+          icuInfo.hvec < 0 ? (
+            <LeftBeds $bgColor="#FF847C">
+              `대기 : ${Math.abs(icuInfo.hvec)}`
+            </LeftBeds>
+          ) : (
+            <>
+              <LeftBeds>
+                <Bed /> {icuInfo.hvec}
+              </LeftBeds>
+            </>
+          )
+        ) : (
+          <LeftBeds $bgColor="#909090">
+            <span>{t("na")}</span>
+          </LeftBeds>
+        )}
       </SecondArea>
 
       {/* 🔽 이 부분이 팝업 */}
@@ -119,11 +149,12 @@ const SecondArea = styled.div`
 `;
 
 const LeftBeds = styled.div`
-  width: 80px;
-  height: 28px;
+  width: 5rem;
+  height: 1.75rem;
 
   border-radius: 0.5rem;
-  background-color: #53a0ff;
+  /* background-color: #53a0ff; */
+  background-color: ${(props) => (props.$bgColor ? props.$bgColor : "#53a0ff")};
 
   color: white;
 
@@ -131,6 +162,11 @@ const LeftBeds = styled.div`
   justify-content: center;
   align-items: center;
   gap: 6px;
+
+  span {
+    color: white;
+    font-size: 0.75rem;
+  }
 `;
 
 const Pickdiv = styled.div`
