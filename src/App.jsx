@@ -318,20 +318,25 @@ function App() {
   }, [selectedDept, hospitalType, fetchHospitalsNearby]);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        deptDropdownRef.current &&
-        !deptDropdownRef.current.contains(event.target)
-      ) {
-        setDeptDropdown(false);
-      }
-    };
+    // 드롭다운이 열려있을 때만 적용되면 되므로 조건문을 넣음
+    if (DeptDropdown) {
+      const handleClickOutside = (event) => {
+        // ref가 존재하고, ref의 영역 밖을 클릭했다면,
+        if (
+          deptDropdownRef.current &&
+          !deptDropdownRef.current.contains(event.target)
+        ) {
+          setDeptDropdown(false);
+        }
+      };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  });
+      document.addEventListener("mousedown", handleClickOutside);
+      // cleanup함수 : useEffect가 다시 실행되거나 컴포넌트가 unmount될 때 리스너를 제거한다.
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+  }, [DeptDropdown]);
 
   // chat 모달
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
@@ -352,7 +357,7 @@ function App() {
       />
 
       {selected === "Clinic" && (
-        <DeptDiv ref={deptDropdownRef}>
+        <DeptDiv>
           <DeptButton onClick={toggleDeptDropdown}>
             {selectedDept
               ? t(deptList.find((d) => d.code === selectedDept)?.name)
@@ -361,7 +366,7 @@ function App() {
           </DeptButton>
 
           {DeptDropdown && (
-            <Dropdown>
+            <Dropdown ref={deptDropdownRef}>
               {deptList.map((dept, idx) => (
                 <DropdownItem
                   key={idx}
