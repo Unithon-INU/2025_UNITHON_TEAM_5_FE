@@ -52,5 +52,7 @@
     "family_medicine": "Family Medicine",
     "emergency_medicine": "Emergency Medicine",
     "dentistry": "Dentistry"
-  }
+  },
+  "copied_to_clipboard": "Copied Successfully",
+  "copy_failed": "Copy Failed"
 }

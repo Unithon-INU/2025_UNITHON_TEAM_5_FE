@@ -1,16 +1,17 @@
 // components/HospitalDetailContent.jsx
 import React, { useState, useEffect } from "react";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
+
 import { useTranslation } from "react-i18next";
+
 import { getHospitalById } from "../api/hospitalDetailApi"; // 새로 만든 API 함수 임포트
 
-// 아이콘 임포트는 그대로 유지
+// icons
 import PinIcon from "../assets/PinIcon.svg";
 import ClockIcon from "../assets/ClockIcon.svg";
 import ERIcon from "../assets/ERIcon.svg";
 import PhoneIcon from "../assets/PhoneIcon.svg";
-
-// --- Helper Functions ---
+import CopyIcon from "../assets/CopyIcon.svg";
 
 // HHMM 형식의 시간을 AM/PM 또는 오전/오후 형식으로 변환
 const formatTime = (timeHHMM, lang) => {
@@ -115,6 +116,41 @@ function HospitalDetailContent({ hpid }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const [toast, setToast] = useState({
+    messageKey: "",
+    visible: false,
+    type: "success",
+  });
+  const [isHiding, setIsHiding] = useState(false);
+
+  const showToast = (messageKey, type = "success") => {
+    setToast({ messageKey, visible: true, type });
+    setIsHiding(false); // 나타날 땐 isHiding을 false로 초기화
+
+    // 2.5초 뒤에 사라지는 애니메이션 시작
+    setTimeout(() => {
+      setIsHiding(true);
+    }, 2500);
+  };
+
+  const handleAnimationEnd = () => {
+    if (isHiding) {
+      setToast({ messageKey: "", visible: false, type: "success" });
+    }
+  };
+
+  const handleCopyToClipboard = (textToCopy) => {
+    navigator.clipboard
+      .writeText(textToCopy)
+      .then(() => {
+        showToast("copied_to_clipboard");
+      })
+      .catch((err) => {
+        console.error("클립보드 복사 실패:", err);
+        showToast(t("copy_failed"), "error");
+      });
+  };
+
   useEffect(() => {
     if (!hpid) return;
 
@@ -174,9 +210,17 @@ function HospitalDetailContent({ hpid }) {
     return null; // 데이터가 없으면 아무것도 표시 안함
   }
 
-  // --- JSX (렌더링 부분) ---
   return (
     <InfoArea>
+      {toast.visible && (
+        <ToastMessage
+          type={toast.type}
+          out={isHiding}
+          onAnimationEnd={handleAnimationEnd}
+        >
+          {t(toast.messageKey)}
+        </ToastMessage>
+      )}
       <TypeArea>
         {hospitalData.hasER && (
           <HospitalTypeER>
@@ -204,6 +248,12 @@ function HospitalDetailContent({ hpid }) {
         <InfoRow>
           <img src={PinIcon} alt="address icon" />
           {hospitalData.address}
+          <CopyButton>
+            <img
+              src={CopyIcon}
+              onClick={() => handleCopyToClipboard(hospitalData.address)}
+            />
+          </CopyButton>
         </InfoRow>
 
         {hospitalData.openToday.startTime && (
@@ -252,33 +302,6 @@ function HospitalDetailContent({ hpid }) {
               </InfoRow>
             );
           })}
-          {/* {hospitalData.openingHours.map((rule, index) => {
-            const firstDay = t(rule.days[0]);
-            const lastDay = t(rule.days[rule.days.length - 1]);
-            const dayRangeText =
-              rule.days.length > 1 ? `${firstDay} - ${lastDay}` : firstDay;
-
-            if (rule.isClosed) {
-              return (
-                <p key={index}>
-                  {t("closed_format", {
-                    dayRange: dayRangeText,
-                    dayOffText: t("regular_day_off"),
-                  })}
-                </p>
-              );
-            } else {
-              return (
-                <p key={index}>
-                  {t("hours_format", {
-                    dayRange: dayRangeText,
-                    startTime: formatTime(rule.startTime, i18n.language),
-                    endTime: formatTime(rule.endTime, i18n.language),
-                  })}
-                </p>
-              );
-            }
-          })} */}
         </OpeningHours>
 
         {hospitalData.hasER && (
@@ -291,7 +314,13 @@ function HospitalDetailContent({ hpid }) {
         {hospitalData.phone && (
           <InfoRow>
             <img src={PhoneIcon} alt="phone icon" style={{ width: "14px" }} />
-            {hospitalData.phone}
+            <span className="phoneNum">{hospitalData.phone}</span>
+            <CopyButton>
+              <img
+                src={CopyIcon}
+                onClick={() => handleCopyToClipboard(hospitalData.phone)}
+              />
+            </CopyButton>
           </InfoRow>
         )}
       </DetailsArea>
@@ -429,6 +458,39 @@ const DetailsArea = styled.div`
   flex-direction: column;
 `;
 
+const toastAnimation = keyframes`
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+`;
+
+const toastIn = keyframes`
+  from { transform: translate(-50%, 100%); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+`;
+
+const toastOut = keyframes`
+  from { transform: translate(-50%, 0); opacity: 1; }
+  to { transform: translate(-50%, 100%); opacity: 0; }
+`;
+
+const ToastMessage = styled.div`
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  background-color: ${(props) =>
+    props.type === "error" ? "#D32F2F" : "rgba(0, 0, 0, 0.7)"};
+  color: white;
+  padding: 12px 20px;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  font-size: 14px;
+  font-weight: 500;
+  // 'out' prop에 따라 다른 애니메이션 적용 (중복 코드 제거)
+  animation: ${(props) => (props.out ? toastOut : toastIn)} 0.5s ease-out
+    forwards;
+`;
+
 const InfoRow = styled.div`
   display: flex;
   align-items: center;
@@ -440,6 +502,25 @@ const InfoRow = styled.div`
   img {
     width: 16px;
     height: 16px;
+  }
+`;
+
+const CopyButton = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #888;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
+
+  &:hover {
+    background-color: #f0f0f0;
+    color: #333;
   }
 `;
 
