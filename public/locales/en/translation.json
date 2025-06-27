@@ -3,6 +3,7 @@
   "welcome": "Welcome to our service",
   "search_nearby": "Search nearby",
   "current_location": "Current Location",
+  "check_location_first": "Please Check Your Location First",
   "er_type": "ER",
   "clinic_type": "Clinic",
   "open_today": "Open today :",

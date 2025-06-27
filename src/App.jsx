@@ -47,7 +47,6 @@ function App() {
   const language = useLanguageStore((state) => state.language);
   const setLanguage = useLanguageStore((state) => state.setLanguage);
 
- 
   const [hospitalMarkers, setHospitalMarkers] = useState([]);
   const [hospitalDetails, setHospitalDetails] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -56,16 +55,24 @@ function App() {
   const [noResultType, setNoResultType] = useState(null);
 
   const prevSelectedDept = useRef(null);
+  const isInitialMount = useRef(true);
+
+  // ✨ 1. 각 fetch 요청을 구분하기 위한 고유 ID ref 추가
+  const fetchIdRef = useRef(0);
 
   const now = new Date();
   const kstOffset = 9 * 60 * 60 * 1000; // 9시간 (밀리초)
   const kstDate = new Date(now.getTime() + kstOffset);
   const currentTime = kstDate.toISOString().split(".")[0]; // 밀리초 제거
+
   const fetchHospitalsNearby = useCallback(async () => {
     if (!userLocation) {
-      alert("현재 위치를 먼저 확인해주세요.");
+      // if (t) alert(t("check_location_first"));
       return;
     }
+
+    // 새로운 fetch가 시작될 때마다 ID를 증가시킵니다.
+    const currentFetchId = ++fetchIdRef.current;
 
     setIsLoading(true);
 
@@ -90,7 +97,6 @@ function App() {
           userLocation.lon,
           10,
           language
-
         );
         const recommendedHpid = recommendResponse?.recommendedHospitalHpid;
 
@@ -175,6 +181,8 @@ function App() {
           })),
         ];
 
+        // 최신 fetch가 아니면 setState 하지 않음
+        if (fetchIdRef.current !== currentFetchId) return;
         // 8. 상태 업데이트
         setHospitalMarkers(allMarkers);
         setHospitalDetails(mergedHospitals); // 목록은 추천 병원 제외
@@ -209,6 +217,8 @@ function App() {
           name: h.name,
         }));
 
+        // 최신 fetch가 아니면 setState 하지 않음
+        if (fetchIdRef.current !== currentFetchId) return;
         // 3. 상태 업데이트
         setHospitalMarkers(allMarkers);
         setHospitalDetails(hospitals);
@@ -218,11 +228,15 @@ function App() {
         setRecommendedHospital(null); // 추천 병원 없음
       }
     } catch (error) {
+      // 최신 fetch가 아니면 setState 하지 않음
+      if (fetchIdRef.current !== currentFetchId) return;
       console.error("병원 정보 불러오기 실패", error);
       setHospitalMarkers([]);
       setHospitalDetails([]);
       setRecommendedHospital(null);
     } finally {
+      // 최신 fetch가 아니면 setState 하지 않음
+      if (fetchIdRef.current !== currentFetchId) return;
       setIsLoading(false);
     }
   }, [userLocation, hospitalType, selectedDept, language, t]);
@@ -264,9 +278,9 @@ function App() {
   const handleMarkerClick = useCallback((hpid) => {
     setSelectedHospital(hpid);
     setShowHospitalDetail(true);
-   console.log('hpid', hpid);
+    console.log("hpid", hpid);
   }, []);
-  
+
   const deptList = [
     { name: "departments.internal_medicine", code: "D001" },
     { name: "departments.pediatrics", code: "D002" },
@@ -301,6 +315,27 @@ function App() {
   }, [selectedDept, hospitalType, fetchHospitalsNearby]);
 
   useEffect(() => {
+    // 앱의 첫 로딩 시에는 이 effect가 실행되는 것을 방지합니다.
+    // 첫 데이터 로딩은 TempNaverMap에서 위치를 잡은 후 최초 1회 실행됩니다.
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    // 위치 정보가 있고, 첫 로딩이 아닐 때만 언어 변경으로 인한 재검색 실행
+    if (hospitalType === "Clinic" && !selectedDept) {
+      return;
+    }
+    console.log(`언어 변경 감지 (${language}). 목록을 새로고침합니다.`);
+    fetchHospitalsNearby();
+  }, [
+    language,
+    hospitalType,
+    selectedDept,
+    fetchHospitalsNearby,
+  ]);
+
+  useEffect(() => {
     // 드롭다운이 열려있을 때만 적용되면 되므로 조건문을 넣음
     if (DeptDropdown) {
       const handleClickOutside = (event) => {
@@ -322,10 +357,11 @@ function App() {
       };
     }
   }, [DeptDropdown]);
-   useEffect(() => {
+
+  useEffect(() => {
     const storedLang = localStorage.getItem("i18nextLng") || "ko";
     setLanguage(storedLang); // ✅ i18nextLng 값을 전역 상태에도 반영
-  }, []);
+  }, [language, setLanguage]);
 
   // chat 모달
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
@@ -380,7 +416,9 @@ function App() {
         noResultType={noResultType}
         setShowHospitalDetail={handleMarkerClick}
       />
-      {showHospitalDetail && <BottomSheet onClose={() => setShowHospitalDetail(false)} />}
+      {/* {showHospitalDetail && (
+        <BottomSheet onClose={() => setShowHospitalDetail(false)} />
+      )} */}
 
       <BottomSheet
         isOpen={showHospitalDetail}

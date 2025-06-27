@@ -170,18 +170,19 @@ const TempNaverMap = ({
   }, [setUserLocation]);
 
   useEffect(() => {
-
-  if (
-    !didRunNearbySearch.current &&
-    initialUserLocation &&
-    initialUserLocation.lat &&
-    initialUserLocation.lon &&
-    typeof onSearchNearby === "function"
-  ) {
-    onSearchNearby(); // ✅ 언어 인자로 전달
-    didRunNearbySearch.current = true;
-  }
-}, [initialUserLocation, onSearchNearby]);
+    // 최초 1회만, 그리고 initialUserLocation이 세팅된 후에만 실행
+    if (
+      !didRunNearbySearch.current &&
+      initialUserLocation &&
+      initialUserLocation.lat &&
+      initialUserLocation.lon &&
+      typeof onSearchNearby === "function"
+    ) {
+      onSearchNearby();
+      didRunNearbySearch.current = true;
+    }
+    // 이후에는 userLocation, initialUserLocation이 바뀌어도 실행되지 않음
+  }, [initialUserLocation, onSearchNearby]);
 
 
   // hospitalMarkers 변경 시 마커 추가/갱신
