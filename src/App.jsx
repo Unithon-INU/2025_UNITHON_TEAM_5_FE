@@ -60,7 +60,9 @@ function App() {
   const [selected, setSelected] = useState("ER");
   const [isPopupVisible, setIsPopupVisible] = useState(false);
 
+  const deptDropdownRef = useRef(null);
   const [DeptDropdown, setDeptDropdown] = useState(false);
+
   const [selectedHospital, setSelectedHospital] = useState(null);
 
   const toggleDeptDropdown = () => setDeptDropdown((prev) => !prev);
@@ -76,6 +78,8 @@ function App() {
   const [recommendedHospital, setRecommendedHospital] = useState();
   const [selectedDept, setSelectedDept] = useState(null);
   const [noResultType, setNoResultType] = useState(null);
+
+  const prevSelectedDept = useRef(null);
 
   const fetchHospitalsNearby = useCallback(async () => {
     if (!userLocation) {
@@ -306,10 +310,28 @@ function App() {
   useEffect(() => {
     // Clinic 모드 && 진료과가 선택됨
     if (hospitalType === "Clinic" && selectedDept) {
-      fetchHospitalsNearby();
+      if (prevSelectedDept.current != selectedDept) fetchHospitalsNearby();
     }
+
+    prevSelectedDept.current = selectedDept;
     // fetch 함수가 useCallback으로 감싸져 있으므로 안전하게 의존성 배열에 추가한다.
   }, [selectedDept, hospitalType, fetchHospitalsNearby]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        deptDropdownRef.current &&
+        !deptDropdownRef.current.contains(event.target)
+      ) {
+        setDeptDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  });
 
   // chat 모달
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
@@ -330,7 +352,7 @@ function App() {
       />
 
       {selected === "Clinic" && (
-        <DeptDiv>
+        <DeptDiv ref={deptDropdownRef}>
           <DeptButton onClick={toggleDeptDropdown}>
             {selectedDept
               ? t(deptList.find((d) => d.code === selectedDept)?.name)
