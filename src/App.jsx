@@ -219,35 +219,35 @@ function App() {
   }, [userLocation, hospitalType, selectedDept, language, t]);
 
   // 바텀 시트에 들어갈 상태
-  const [hospitalDetail, setHospitalDetail] = useState({
-    nameTranslated: "Seoul-University Hospital", // 번역된 병원 이름
-    nameOriginal: "서울대학교 병원",
-    address: "서울 종로구 대학로 101 (6.2km)", // 주소
-    openToday: {
-      startTime: "09:00",
-      endTime: "22:00",
-      type: "Clinic",
-    },
-    openingHours: [
-      {
-        days: ["mon", "tue", "wed", "thu", "fri"], // 적용 요일 (번역 키와 일치시킴)
-        startTime: "09:00",
-        endTime: "22:00",
-      },
-      {
-        days: ["sat"],
-        startTime: "09:00",
-        endTime: "13:00",
-      },
-      {
-        days: ["sun"],
-        isClosed: true, // 휴무일 여부
-      },
-    ],
-    hasER: true, // 응급실 유무
-    hasClinic: true, // 일반 진료 유무
-    phone: "02-111-2221", // 전화번호
-  });
+  // const [hospitalDetail, setHospitalDetail] = useState({
+  //   nameTranslated: "Seoul-University Hospital", // 번역된 병원 이름
+  //   nameOriginal: "서울대학교 병원",
+  //   address: "서울 종로구 대학로 101 (6.2km)", // 주소
+  //   openToday: {
+  //     startTime: "09:00",
+  //     endTime: "22:00",
+  //     type: "Clinic",
+  //   },
+  //   openingHours: [
+  //     {
+  //       days: ["mon", "tue", "wed", "thu", "fri"], // 적용 요일 (번역 키와 일치시킴)
+  //       startTime: "09:00",
+  //       endTime: "22:00",
+  //     },
+  //     {
+  //       days: ["sat"],
+  //       startTime: "09:00",
+  //       endTime: "13:00",
+  //     },
+  //     {
+  //       days: ["sun"],
+  //       isClosed: true, // 휴무일 여부
+  //     },
+  //   ],
+  //   hasER: true, // 응급실 유무
+  //   hasClinic: true, // 일반 진료 유무
+  //   phone: "02-111-2221", // 전화번호
+  // });
 
   // Bottom Sheet 전체 열기/닫기
   const [showHospitalDetail, setShowHospitalDetail] = useState(false);
@@ -370,7 +370,7 @@ function App() {
         isOpen={showHospitalDetail}
         onClose={() => setShowHospitalDetail(false)}
       >
-        <HospitalDetailContent hospitalDetail={hospitalDetail} />
+        <HospitalDetailContent hpid={selectedHospital} />
       </BottomSheet>
       {isChatModalOpen && <ChatModal onClose={closeChatModal} />}
     </CommonBox>
