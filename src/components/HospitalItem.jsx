@@ -4,40 +4,54 @@ import PickBackground from "../assets/aipickback.svg";
 import Bed from "../assets/bed.svg?react";
 import { IoIosArrowDown } from "react-icons/io"; // 화살표 아이콘
 
-export default function HospitalItem({ name, address, tel, icuInfo, recommended,type }) {
+export default function HospitalItem({
+  name,
+  address,
+  tel,
+  icuInfo,
+  recommended,
+  type,
+}) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const hasIcuInfo = icuInfo && icuInfo.hvec != null;
 
   return (
-  <Wrapper recommended={recommended}>
-    <FirstArea>
-      <span style={{fontSize:'16px'}}>
-        <strong>{name}</strong>
-      </span>
-      <AddressRow>
-        <AddressText>
-          {type === "Clinic" ? address : address || "null"}
-        </AddressText>
-        {address && (
-          <DropdownBtn onClick={() => setIsModalOpen(!isModalOpen)}>
-            <RotatingIcon open={isModalOpen} size={16} />
-          </DropdownBtn>
-        )}
-      </AddressRow>
+    <Wrapper recommended={recommended}>
+      <FirstArea>
+        <span style={{ fontSize: "16px" }}>
+          <strong>{name}</strong>
+        </span>
+        <AddressRow>
+          <AddressText>
+            {type === "Clinic" ? address : address || "null"}
+          </AddressText>
+          {address && (
+            <DropdownBtn onClick={() => setIsModalOpen(!isModalOpen)}>
+              <RotatingIcon open={isModalOpen} size={16} />
+            </DropdownBtn>
+          )}
+        </AddressRow>
 
-      <span>
-        {type === "Clinic" ? (tel || "전화번호 없음") : (
-          hasIcuInfo ? (tel || "전화번호 없음") : "정보를 제공하지 않음"
-        )}
-      </span>
+        <span>
+          {type === "Clinic"
+            ? tel || "전화번호 없음"
+            : hasIcuInfo
+              ? tel || "전화번호 없음"
+              : "정보를 제공하지 않음"}
+        </span>
       </FirstArea>
 
-    <SecondArea recommended={recommended}>
-      {recommended && <Pickdiv>AI PICK!</Pickdiv>}
-      <LeftBeds>
-        {hasIcuInfo && icuInfo.hvs01 != null ? (
-          icuInfo.hvec < 0 ? (
-            `${Math.abs(icuInfo.hvec)}대기`
+      <SecondArea recommended={recommended}>
+        {recommended && <Pickdiv>AI PICK!</Pickdiv>}
+        <LeftBeds>
+          {hasIcuInfo && icuInfo.hvs01 != null ? (
+            icuInfo.hvec < 0 ? (
+              `${Math.abs(icuInfo.hvec)}대기`
+            ) : (
+              <>
+                <Bed /> {icuInfo.hvec}
+              </>
+            )
           ) : (
             0
           )}
