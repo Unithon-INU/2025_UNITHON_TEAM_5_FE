@@ -5,6 +5,7 @@ import styled from "styled-components";
 import PickBackground from "../assets/aipickback.svg";
 import Bed from "../assets/bed.svg?react";
 import { IoIosArrowDown } from "react-icons/io"; // 화살표 아이콘
+import AIPickIcon from "../assets/AIPickIcon.svg";
 
 // i18n
 import { useTranslation } from "react-i18next";
@@ -49,7 +50,11 @@ export default function HospitalItem({
       </FirstArea>
 
       <SecondArea recommended={recommended}>
-        {recommended && <Pickdiv>AI PICK!</Pickdiv>}
+        {recommended && (
+          <Pickdiv>
+            <img src={AIPickIcon} />
+          </Pickdiv>
+        )}
         {/* <LeftBeds>
           {hasIcuInfo && icuInfo.hvs01 != null ? (
             icuInfo.hvec < 0 ? (

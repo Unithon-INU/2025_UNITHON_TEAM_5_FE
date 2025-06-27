@@ -201,10 +201,10 @@ const TopCenterButton = styled.button`
   background-color: #fff;
   font-family: "Kanit", sans-serif;
   font-weight: 900;
+  font-size: 14px;
   border: none;
   border-radius: 16px;
   cursor: pointer;
-  font-size: 16px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   width: 201px;
   display: flex;
