@@ -33,10 +33,9 @@ const TempNaverMap = ({
 
   const { language, setLanguage } = useLanguageStore();
   const { t, i18n } = useTranslation();
-  const [popupVisible, setPopupVisible] = useState(isPopupVisible);
+
   const [popupPosition, setPopupPosition] = useState({ top: 5, left: 14 });
   const DEFAULT_ZOOM = 13;
- 
 
   const handleGoToInitialLocation = () => {
     const { lat, lon } = useLocationStore.getState().initialUserLocation || {};
@@ -60,10 +59,6 @@ const TempNaverMap = ({
 
     setUserLocation(lat, lon);
   };
-
-  useEffect(() => {
-    setPopupVisible(isPopupVisible);
-  }, [isPopupVisible]);
 
   // 초기 지도 및 사용자 마커 생성
   useEffect(() => {
@@ -240,7 +235,7 @@ const TempNaverMap = ({
 
   const handleLanguageSelect = (language) => {
     i18n.changeLanguage(language);
-    setPopupVisible(false);
+
     togglePopup(false);
     setLanguage(language);
   };
@@ -248,11 +243,11 @@ const TempNaverMap = ({
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
-        popupVisible &&
+        isPopupVisible &&
         popupRef.current &&
         !popupRef.current.contains(event.target)
       ) {
-        setPopupVisible(false);
+        togglePopup(false);
       }
     };
 
@@ -260,7 +255,7 @@ const TempNaverMap = ({
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [popupVisible]);
+  }, [isPopupVisible, togglePopup]);
 
   return (
     <MapContainer ref={mapElementRef}>
@@ -268,14 +263,13 @@ const TempNaverMap = ({
         <Reload />
         {t("search_nearby")}
       </TopCenterButton>
-      
 
       <Popup
         style={{
           top: popupPosition.top,
           left: popupPosition.left,
-          opacity: popupVisible ? 1 : 0,
-          visibility: popupVisible ? "visible" : "hidden",
+          opacity: isPopupVisible ? 1 : 0,
+          visibility: isPopupVisible ? "visible" : "hidden",
         }}
         ref={popupRef}
       >
@@ -318,7 +312,7 @@ const Popup = styled.div`
     opacity 0.2s ease-in-out,
     visibility 0.2s ease-in-out;
 
-  /* filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2)); */
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
 `;
 
 const LanguageButton = styled.button`

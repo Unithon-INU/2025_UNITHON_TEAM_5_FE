@@ -18,7 +18,9 @@
   "pm": "PM",
   "regular_day_off": "Closed (Regular day off)",
   "er_available": "ER Available",
-  "open_now": "OPEN NOW",
+  "open_now_long": "OPEN NOW",
+  "open_now": "OPEN",
+  "closed_today": "CLOSED",
   "clinic_hours_format": "{{startTime}} - {{endTime}} (Clinic)",
   "hours_format": "{{dayRange}}: {{startTime}} - {{endTime}}",
   "closed_format": "{{dayRange}}: {{dayOffText}}",
@@ -30,5 +32,24 @@
   "tel_na": "Phone number not provided",
   "addr_na": "Address not provided",
   "waiting": "waiting",
-  "na": "N/A"
+  "na": "N/A",
+  "select_dept": "Select Dept.",
+  "select_dept_prompt": "Please select a department first.",
+  "departments": {
+    "internal_medicine": "Internal Medicine",
+    "surgery": "Surgery",
+    "orthopedics": "Orthopedics",
+    "neurology": "Neurology",
+    "neurosurgery": "Neurosurgery",
+    "dermatology": "Dermatology",
+    "ent": "Otolaryngology (ENT)",
+    "ophthalmology": "Ophthalmology",
+    "urology": "Urology",
+    "obstetrics_gynecology": "Obstetrics & Gynecology",
+    "pediatrics": "Pediatrics",
+    "psychiatry": "Psychiatry",
+    "family_medicine": "Family Medicine",
+    "emergency_medicine": "Emergency Medicine",
+    "dentistry": "Dentistry"
+  }
 }
