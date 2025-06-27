@@ -70,7 +70,7 @@ const TempNaverMap = ({
 
   // 초기 지도 및 사용자 마커 생성
   useEffect(() => {
-    console.log('초기지도발동')
+    console.log("초기지도발동");
     if (!window.naver || !mapElementRef.current) return;
 
     // InfoWindow 초기화
@@ -181,8 +181,11 @@ const TempNaverMap = ({
       });
     };
 
-    navigator.geolocation.getCurrentPosition(onPositionSuccess, onPositionError);
-  }, [ setUserLocation]);
+    navigator.geolocation.getCurrentPosition(
+      onPositionSuccess,
+      onPositionError
+    );
+  }, [setUserLocation]);
 
   useEffect(() => {
   if (
@@ -221,15 +224,15 @@ const TempNaverMap = ({
       });
 
       marker.addListener("click", () => {
-  infoWindowRef.current.setContent(
-    `<div style="padding:8px;"><strong>${name || "병원"}</strong><br/>ID: ${hpid}</div>`
-  );
+        infoWindowRef.current.setContent(
+          `<div style="padding:8px;"><strong>${name || "병원"}</strong><br/>ID: ${hpid}</div>`
+        );
 
-  // 💡 기존 InfoWindow를 강제로 새 위치로 열어줌
-  infoWindowRef.current.open(mapRef.current, marker);
+        // 💡 기존 InfoWindow를 강제로 새 위치로 열어줌
+        infoWindowRef.current.open(mapRef.current, marker);
 
-  onMarkerClick && onMarkerClick(hpid);
-});
+        onMarkerClick && onMarkerClick(hpid);
+      });
 
       hospitalMarkerRefs.current.push(marker);
     });
@@ -321,7 +324,11 @@ const Popup = styled.div`
   border-radius: 8px;
   height: 50px;
   background-color: #f5f8fd;
-  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+  transition:
+    opacity 0.2s ease-in-out,
+    visibility 0.2s ease-in-out;
+
+  /* filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2)); */
 `;
 
 const LanguageButton = styled.button`

@@ -1,9 +1,8 @@
-import React,{useState} from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import PickBackground from "../assets/aipickback.svg";
 import Bed from "../assets/bed.svg?react";
 import { IoIosArrowDown } from "react-icons/io"; // 화살표 아이콘
-
 
 export default function HospitalItem({ name, address, tel, icuInfo, recommended,type }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -40,25 +39,19 @@ export default function HospitalItem({ name, address, tel, icuInfo, recommended,
           icuInfo.hvec < 0 ? (
             `${Math.abs(icuInfo.hvec)}대기`
           ) : (
-            <>
-              <Bed /> {icuInfo.hvec}
-            </>
-          )
-        ) : (
-          0
-        )}
-      </LeftBeds>
-    </SecondArea>
+            0
+          )}
+        </LeftBeds>
+      </SecondArea>
 
-    {/* 🔽 이 부분이 팝업 */}
-    {isModalOpen && (
-      <PopupModal onClick={(e) => e.stopPropagation()}>
-        
-        <div>{address}</div>
-      </PopupModal>
-    )}
-  </Wrapper>
-);
+      {/* 🔽 이 부분이 팝업 */}
+      {isModalOpen && (
+        <PopupModal onClick={(e) => e.stopPropagation()}>
+          <div>{address}</div>
+        </PopupModal>
+      )}
+    </Wrapper>
+  );
 }
 
 const Wrapper = styled.div`
@@ -66,9 +59,7 @@ const Wrapper = styled.div`
   width: 100%;
   height: 6rem;
   background: ${({ recommended }) =>
-  recommended
-    ? 'linear-gradient(to bottom, #BCE1FF, #FFE1FC)'
-    : 'white'};
+    recommended ? "linear-gradient(to bottom, #BCE1FF, #FFE1FC)" : "white"};
 
   display: flex;
   justify-content: space-between;
@@ -90,10 +81,8 @@ const FirstArea = styled.div`
   overflow: hidden;
   text-overflow: ellipsis;
   @media (max-width: 400px) {
-    
     font-size: 13px;
-
-}
+  }
 `;
 
 const SecondArea = styled.div`
@@ -101,28 +90,26 @@ const SecondArea = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: ${({ recommended }) =>
-  recommended ? 'space-between' : 'flex-end'};
+    recommended ? "space-between" : "flex-end"};
   align-items: flex-end;
   align-items: flex-end;
-  
+
   color: black;
 
   span {
     color: black;
   }
   @media (max-width: 400px) {
-    
     font-size: 15px;
-
-}
+  }
 `;
 
-const  LeftBeds = styled.div`
+const LeftBeds = styled.div`
   width: 80px;
   height: 28px;
 
   border-radius: 0.5rem;
-  background-color: #53A0FF;
+  background-color: #53a0ff;
 
   color: white;
 
@@ -132,14 +119,12 @@ const  LeftBeds = styled.div`
   gap: 6px;
 `;
 
-const Pickdiv=styled.div`
-    width: 80px;
-    padding-left: 2px;
-    box-sizing: border-box;
-    font-family: 'Fredoka One', cursive;
-
-
-`
+const Pickdiv = styled.div`
+  width: 80px;
+  padding-left: 2px;
+  box-sizing: border-box;
+  font-family: "Fredoka One", cursive;
+`;
 
 const AddressRow = styled.div`
   display: flex;
@@ -154,16 +139,14 @@ const AddressText = styled.span`
   max-width: 200px;
 `;
 
-
-
 const PopupModal = styled.div`
   position: absolute;
-  top: calc(65% ); /* 카드 아래로 4px 떨어지게 */
+  top: calc(65%); /* 카드 아래로 4px 떨어지게 */
   left: 15;
   background: white;
   padding: 8px 12px;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
   z-index: 10;
   width: max-content;
   max-width: 280px;

@@ -1,5 +1,5 @@
 // App.jsx
-import React, { useCallback,useState, useEffect, useRef } from "react";
+import React, { useCallback, useState, useEffect, useRef } from "react";
 import NaverMap from "./components/NaverMap";
 import "./App.css";
 import CommonBox from "./CommonBox";
@@ -11,6 +11,8 @@ import HospitalList from "./components/HospitalList";
 import HospitalItemBody from "./components/HospitalItemBody";
 import BottomSheet from "./components/BottomSheet";
 import useLocationStore from "./store/locationStore";
+import ChatModal from "./components/ChatModal";
+
 import { getEmergency,getEmergencyInfo,recommend } from "./api/emergencyApi";
 import { getClinic } from "./api/clinicApi";
 import useLanguageStore from "./store/languageStore";
@@ -82,7 +84,6 @@ function App() {
   const [recommendedHospital,setRecommendedHospital]=useState();
   const [selectedDept,setSelectedDept]=useState(null);
   const [noResultType, setNoResultType] = useState(null);
-
 
   const fetchHospitalsNearby = async () => {
   if (!userLocation) {
@@ -252,11 +253,9 @@ function App() {
   const [showHospitalDetail, setShowHospitalDetail] = useState(false);
 
   const handleMarkerClick = useCallback((hpid) => {
-    
-  setSelectedHospital(hpid);
-  setShowHospitalDetail(true);
-}, []);
-
+    setSelectedHospital(hpid);
+    setShowHospitalDetail(true);
+  }, []);
 
   const deptList = [
   { name: "내과", code: "D001" },
@@ -275,11 +274,6 @@ function App() {
   // 필요한 만큼 추가
 ];
 
-
-  
-
-
-
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (regionRef.current && !regionRef.current.contains(e.target)) {
@@ -295,6 +289,7 @@ function App() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [regionRef, districtRef]);
+
  
 useEffect(() => {
   // 병원 타입 바뀔 때 기존 목록, 추천 병원 초기화
@@ -303,11 +298,14 @@ useEffect(() => {
   setRecommendedHospital(null);
 }, [hospitalType]);
 
-
+  // chat 모달
+  const [isChatModalOpen, setIsChatModalOpen] = useState(false);
+  const openChatModal = () => setIsChatModalOpen(true);
+  const closeChatModal = () => setIsChatModalOpen(false);
 
   return (
     <CommonBox>
-      <Header onGlobeClick={togglePopup}>
+      <Header onGlobeClick={togglePopup} onChatIconClick={openChatModal}>
         <ToggleSwitch selected={selected} setSelected={setSelected} />
       </Header>
       <TempNaverMap
@@ -347,9 +345,7 @@ useEffect(() => {
       )}
 
       {selected === "ER" && (
-        <DropdownContainer>
-          
-          
+        <DropdownContainer>       
         </DropdownContainer>
       )}
       
@@ -495,6 +491,7 @@ useEffect(() => {
           </DetailsArea>
         </InfoArea>
       </BottomSheet>
+      {isChatModalOpen && <ChatModal onClose={closeChatModal} />}
     </CommonBox>
   );
 }
@@ -511,7 +508,7 @@ const DeptDiv = styled.div`
   align-items: center;
   gap: 8px;
   justify-content: space-between;
-  border-bottom:solid 1px gray;
+  border-bottom: solid 1px gray;
 `;
 
 const DropdownContainer = styled.div`
@@ -521,7 +518,7 @@ const DropdownContainer = styled.div`
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  border-bottom:solid 1px gray;
+  border-bottom: solid 1px gray;
 `;
 
 const StyleDown = styled(DownArrow)`
@@ -578,7 +575,6 @@ const Dropdown = styled.div`
   max-height: 140px;
   overflow-y: auto;
   scrollbar-width: none;
-  
 `;
 
 const DropdownItem = styled.div`
@@ -588,7 +584,6 @@ const DropdownItem = styled.div`
   &:hover {
     background-color: #f1f1f1;
   }
-  
 `;
 
 const FetchButton = styled.button`
@@ -638,8 +633,6 @@ const MylocateDiv = styled.div`
   overflow: hidden;
   text-overflow: ellipsis;
 `;
-
-
 
 // 바텀 시트 관련 UI
 
@@ -819,12 +812,11 @@ const OpeningHours = styled.div`
   }
 `;
 
-const ERdiv=styled.div`
-  display:flex;
+const ERdiv = styled.div`
+  display: flex;
   justify-content: flex-end;
   width: 100%;
-
-`
+`;
 
 const LocationPopup = styled.div`
   position: absolute;
@@ -833,7 +825,7 @@ const LocationPopup = styled.div`
   background: white;
   padding: 8px 12px;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
   z-index: 20;
   width: max-content;
   max-width: 260px;
@@ -844,7 +836,6 @@ const LocationPopup = styled.div`
 `;
 
 const ArrowIcon = styled(IoIosArrowDown)`
-  
   transition: transform 0.3s ease;
   transform: ${({ open }) => (open ? "rotate(180deg)" : "rotate(0deg)")};
   cursor: pointer;
