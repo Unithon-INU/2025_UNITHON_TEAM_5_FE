@@ -15,10 +15,16 @@ export default function HospitalItem({
   address,
   tel,
   icuInfo,
+  reason,
   recommended,
   type,
+  isOpen,
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isNameModalOpen, setIsNameModalOpen] = useState(false);
+  const [isResonModalOpen, setIsResonModalOpen] = useState(false);
+
+
   const hasIcuInfo = icuInfo && icuInfo.hvec != null;
 
   const { t, i18n } = useTranslation();
@@ -26,9 +32,14 @@ export default function HospitalItem({
   return (
     <Wrapper recommended={recommended}>
       <FirstArea>
-        <span style={{ fontSize: "16px" }}>
-          <strong>{name}</strong>
-        </span>
+        <NameRow>
+          <NameText>
+            <strong>{name}</strong>
+          </NameText>
+          <DropdownBtn onClick={() => setIsNameModalOpen(!isNameModalOpen)}>
+            <RotatingIcon open={isNameModalOpen} size={16} />
+          </DropdownBtn>
+        </NameRow>
         <AddressRow>
           <AddressText>
             {type === "Clinic" ? address : address || "null"}
@@ -47,51 +58,65 @@ export default function HospitalItem({
               ? tel || t("tel_na")
               : t("addr_na")}
         </span>
+        <AddressRow>
+          <AddressText>
+            {reason}
+          </AddressText>
+          {reason && (
+            <DropdownBtn onClick={() => setIsResonModalOpen(!isResonModalOpen)}>
+              <RotatingIcon open={isResonModalOpen} size={16} />
+            </DropdownBtn>
+          )}
+        </AddressRow>
       </FirstArea>
 
       <SecondArea recommended={recommended}>
-        {recommended && (
-          <Pickdiv>
-            <img src={AIPickIcon} />
-          </Pickdiv>
-        )}
-        {/* <LeftBeds>
-          {hasIcuInfo && icuInfo.hvs01 != null ? (
-            icuInfo.hvec < 0 ? (
-              `대기 : ${Math.abs(icuInfo.hvec)}`
-            ) : (
-              <>
-                <Bed /> {icuInfo.hvec}
-              </>
-            )
-          ) : (
-            <span>{t("na")}</span>
-          )}
-        </LeftBeds> */}
+  {recommended && (
+    <Pickdiv>
+      <img src={AIPickIcon} />
+    </Pickdiv>
+  )}
 
-        {hasIcuInfo && icuInfo.hvs01 != null ? (
-          icuInfo.hvec < 0 ? (
-            <LeftBeds $bgColor="#FF847C">
-              `대기 : ${Math.abs(icuInfo.hvec)}`
-            </LeftBeds>
-          ) : (
-            <>
-              <LeftBeds>
-                <Bed /> {icuInfo.hvec}
-              </LeftBeds>
-            </>
-          )
-        ) : (
-          <LeftBeds $bgColor="#909090">
-            <span>{t("na")}</span>
-          </LeftBeds>
-        )}
-      </SecondArea>
+  {type === "Clinic" ? (
+    // Clinic이면 Bed 대신 isOpen 상태 표시
+    <LeftBeds $bgColor={isOpen ? "#3A78EB" : "#909090"}>
+      <span>{isOpen ? "영업중" : "휴무중"}</span> {/*국제화필요*/}
+    </LeftBeds>
+  ) : (
+    // 기존 ICU 정보 처리
+    hasIcuInfo && icuInfo.hvs01 != null ? (
+      icuInfo.hvec < 0 ? (
+        <LeftBeds $bgColor="#FF847C">
+          {`대기 : ${Math.abs(icuInfo.hvec)}`}
+        </LeftBeds>
+      ) : (
+        <LeftBeds>
+          <Bed /> {icuInfo.hvec}
+        </LeftBeds>
+      )
+    ) : (
+      <LeftBeds $bgColor="#909090">
+        <span>{t("na")}</span>
+      </LeftBeds>
+    )
+  )}
+</SecondArea>
+
 
       {/* 🔽 이 부분이 팝업 */}
+      {isNameModalOpen && (
+        <PopupModal onClick={(e) => e.stopPropagation()}>
+          <div>{name}</div>
+        </PopupModal>
+      )}
       {isModalOpen && (
         <PopupModal onClick={(e) => e.stopPropagation()}>
           <div>{address}</div>
+        </PopupModal>
+      )}
+      {isResonModalOpen && (
+        <PopupModal onClick={(e) => e.stopPropagation()}>
+          <div>{reason}</div>
         </PopupModal>
       )}
     </Wrapper>
@@ -101,7 +126,7 @@ export default function HospitalItem({
 const Wrapper = styled.div`
   border-bottom: 1px solid gray;
   width: 100%;
-  height: 6rem;
+  height: ${({ recommended }) => (recommended ? "7rem" : "6rem")};
   background: ${({ recommended }) =>
     recommended ? "linear-gradient(to bottom, #BCE1FF, #FFE1FC)" : "white"};
 
@@ -116,6 +141,7 @@ const Wrapper = styled.div`
 `;
 
 const FirstArea = styled.div`
+  font-family:'Inter', sans-serif;
   font-size: 14px;
   width: 75%;
   display: flex;
@@ -186,7 +212,6 @@ const AddressText = styled.span`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 200px;
 `;
 
 const PopupModal = styled.div`
@@ -216,4 +241,15 @@ const DropdownBtn = styled.button`
 const RotatingIcon = styled(IoIosArrowDown)`
   transition: transform 0.3s ease;
   transform: ${({ open }) => (open ? "rotate(180deg)" : "rotate(0deg)")};
+`;
+const NameRow = styled.div`
+  display: flex;
+  align-items: center;
+  max-width: 100%;
+`;
+
+const NameText = styled.span`
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
