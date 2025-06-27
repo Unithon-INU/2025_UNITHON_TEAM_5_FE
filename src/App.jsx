@@ -11,8 +11,12 @@ import HospitalList from "./components/HospitalList";
 import HospitalItemBody from "./components/HospitalItemBody";
 import BottomSheet from "./components/BottomSheet";
 import useLocationStore from "./store/locationStore";
-import { getEmergency, getEmergencyInfo } from "./api/emergencyApi";
 import ChatModal from "./components/ChatModal";
+
+import { getEmergency,getEmergencyInfo,recommend } from "./api/emergencyApi";
+import { getClinic } from "./api/clinicApi";
+import useLanguageStore from "./store/languageStore";
+import useHospitalTypeStore from "./store/stateStore";
 
 // icons
 import DownArrow from "./assets/DownArrow.svg?react";
@@ -70,100 +74,148 @@ function App() {
   const togglePopup = () => setIsPopupVisible((prev) => !prev);
 
   const userLocation = useLocationStore((state) => state.userLocation);
+  const hospitalType = useHospitalTypeStore(state => state.hospitalType);
+  const language = useLanguageStore(state => state.language);
+
+
   const [hospitalMarkers, setHospitalMarkers] = useState([]);
   const [hospitalDetails, setHospitalDetails] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-
-  const [isMyLocOpen, setIsMyLocOpen] = useState(false);
-  const [myLocationAddress, setMyLocationAddress] = useState();
-  const reverseGeocode = (lat, lng) => {
-    return new Promise((resolve, reject) => {
-      if (!window.naver || !window.naver.maps || !window.naver.maps.Service) {
-        reject("Naver Maps API is not loaded");
-        return;
-      }
-
-      window.naver.maps.Service.reverseGeocode(
-        {
-          coords: new window.naver.maps.LatLng(lat, lng),
-          orders: [window.naver.maps.Service.OrderType.ADDR], // 주소 결과만 요청
-        },
-        (status, response) => {
-          if (status !== window.naver.maps.Service.Status.OK) {
-            reject(status);
-            return;
-          }
-
-          const result = response.v2;
-          const address = result.address; // 주소 정보
-
-          // 주소 구성 요소를 원하는 대로 조합
-          // jibunAddress(지번 주소), roadAddress(도로명 주소) 중 우선순위 정해 사용
-          const formattedAddress =
-            address.jibunAddress || address.roadAddress || "주소 정보 없음";
-
-          resolve(formattedAddress);
-        }
-      );
-    });
-  };
+  const [recommendedHospital,setRecommendedHospital]=useState();
+  const [selectedDept,setSelectedDept]=useState(null);
+  const [noResultType, setNoResultType] = useState(null);
 
   const fetchHospitalsNearby = async () => {
-    if (!userLocation) {
-      alert("현재 위치를 먼저 확인해주세요.");
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const emergencyData = await getEmergency(
-        userLocation.lat,
-        userLocation.lon,
-        10
-      );
-      const hospitals = emergencyData || [];
-      console.log("emer", emergencyData);
-      console.log("hs", hospitals);
+  if (!userLocation) {
+    alert("현재 위치를 먼저 확인해주세요.");
+    return;
+  }
 
-      setHospitalMarkers(
-        hospitals.map((h) => ({
-          hpid: h.hpid,
-          lat: h.lat,
-          lng: h.lng,
-          name: h.name,
-        }))
-      );
+  setIsLoading(true);
 
-      const emergencyInfoData = await getEmergencyInfo(
-        userLocation.lat,
-        userLocation.lon,
-        10
-      );
-      console.log("se", emergencyInfoData);
+  try {
+    let hospitals = [];
+    let recommendedHospital = null;
+
+    if (hospitalType === "ER") {
+      // ER일 경우
+
+      // 1. 응급 병원 기본 정보 (language 파라미터 추가)
+      const emergencyData = await getEmergency(userLocation.lat, userLocation.lon , language);
+      hospitals = emergencyData || [];
+
+      // 2. 추천 병원 정보 (recommend는 language 인자 없는 걸로 가정)
+      const recommendResponse = await recommend(userLocation.lat, userLocation.lon, 10);
+      const recommendedHpid = recommendResponse?.recommendedHospitalHpid;
+
+      // 3. 추천 병원 제거
+      hospitals = hospitals.filter(h => h.hpid !== recommendedHpid);
+
+      // 4. 상세 정보 요청
+      const emergencyInfoData = await getEmergencyInfo(userLocation.lat, userLocation.lon, 10 );
       const details = emergencyInfoData || [];
-      console.log("detail", details);
 
-      const mergedDetails = hospitals.map((h) => {
-        const detail = details.find((d) => d.hpid === h.hpid) || {};
+      // 5. 병원 통합 정보 만들기
+      const mergedHospitals = hospitals.map(h => {
+        const detail = details.find(d => d.hpid === h.hpid) || {};
         return {
           hpid: h.hpid,
-          name: h.name,
+          name: language === 'en' ? h.nameEn || h.name : h.name,
           lat: h.lat,
           lng: h.lng,
-          addr: h.address, // 주소는 getEmergency에서
+          addr: language === 'en' ? h.addressEn || h.address : h.address,
+          isRecommended: false,
           ...detail,
         };
       });
-      console.log("멎ㅣ", mergedDetails);
 
-      setHospitalDetails(mergedDetails);
-    } catch (error) {
-      console.error("병원 정보 불러오기 실패", error);
-      setHospitalMarkers([]);
-      setHospitalDetails([]);
-    } finally {
+      const recommendedDetail = details.find(d => d.hpid === recommendedHpid);
+      if (recommendedDetail) {
+        const matchingBasic = emergencyData.find(h => h.hpid === recommendedHpid);
+        recommendedHospital = {
+          hpid: recommendedHpid,
+          name:
+            language === "en"
+              ? matchingBasic?.nameEn || recommendedDetail.dutyNameEn || matchingBasic?.name || recommendedDetail.dutyName || "AI 추천 병원"
+              : matchingBasic?.name || recommendedDetail.dutyName || "AI 추천 병원",
+          lat: matchingBasic?.lat || 0,
+          lng: matchingBasic?.lng || 0,
+          addr:
+            language === "en"
+              ? matchingBasic?.addressEn || recommendedDetail.dutyAddrEn || matchingBasic?.address || recommendedDetail.dutyAddr || ""
+              : matchingBasic?.address || recommendedDetail.dutyAddr || "",
+          isRecommended: true,
+          ...recommendedDetail,
+        };
+      }
+
+      // 7. 마커 설정 (추천 병원 먼저)
+      const allMarkers = [
+        ...(recommendedHospital ? [{
+          hpid: recommendedHospital.hpid,
+          lat: recommendedHospital.lat,
+          lng: recommendedHospital.lng,
+          name: recommendedHospital.name,
+          isRecommended: true,
+        }] : []),
+        ...mergedHospitals.map(h => ({
+          hpid: h.hpid,
+          lat: h.lat,
+          lng: h.lng,
+          name: h.name,
+        })),
+      ];
+
+      // 8. 상태 업데이트
+      setHospitalMarkers(allMarkers);
+      setHospitalDetails(mergedHospitals); // 목록은 추천 병원 제외
+      if (mergedHospitals.length === 0) {
+          setNoResultType(hospitalType);
+        }
+      setRecommendedHospital(recommendedHospital); // 추천 병원은 따로
+
+    } else if (hospitalType === "Clinic") {
+      // Clinic일 경우
+       if (!selectedDept) {
+      alert("진료과를 선택해주세요.");
       setIsLoading(false);
+      return; 
+       }
+      // 1. 클리닉 정보 가져오기 (language 인자 추가)
+      const clinicData = await getClinic(userLocation.lat, userLocation.lon, selectedDept, language);
+      hospitals = clinicData || [];
+
+      // (추천 병원 API 없음 가정)
+
+      // 2. 병원 마커 생성
+      const allMarkers = hospitals.map(h => ({
+        hpid: h.hpid,
+        lat: h.lat,
+        lng: h.lng,
+        name: h.name,
+      }));
+
+      // 3. 상태 업데이트
+      setHospitalMarkers(allMarkers);
+      setHospitalDetails(hospitals);
+      if (hospitals.length === 0) {
+        setNoResultType(hospitalType);
+      }
+      setRecommendedHospital(null); // 추천 병원 없음
     }
-  };
+
+  } catch (error) {
+    console.error("병원 정보 불러오기 실패", error);
+    setHospitalMarkers([]);
+    setHospitalDetails([]);
+    setRecommendedHospital(null);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+
+
 
   // 바텀 시트에 들어갈 상태
   const [hospitalDetail, setHospitalDetail] = useState({
@@ -206,21 +258,21 @@ function App() {
   }, []);
 
   const deptList = [
-    "Internal Medicine",
-    "Pediatrics",
-    "Orthopedics",
-    "Otolaryngology",
-    "Dermatology",
-  ];
-
-  const handleRegionSelect = (region) => {
-    setSelectedRegion(region);
-    setStage1DropdownOpen(false);
-  };
-  const handleDistrictSelect = (district) => {
-    setSelectedDistrict(district);
-    setStage2DropdownOpen(false);
-  };
+  { name: "내과", code: "D001" },
+  { name: "소아청소년과", code: "D002" },
+  { name: "피부과", code: "D005" },
+  { name: "정형외과", code: "D008" },
+  { name: "안과", code: "D012" },
+  { name: "이비인후과", code: "D013" },
+  { name: "산부인과", code: "D011" },
+  { name: "정신건강의학과", code: "D004" },
+  { name: "외과", code: "D006" },
+  { name: "비뇨의학과", code: "D014" },
+  { name: "치과", code: "D026" },
+  { name: "응급의학과", code: "D024" },
+  { name: "가정의학과", code: "D022" },
+  // 필요한 만큼 추가
+];
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -237,17 +289,14 @@ function App() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [regionRef, districtRef]);
-  useEffect(() => {
-    if (!userLocation) return;
 
-    reverseGeocode(userLocation.lat, userLocation.lon)
-      .then((address) => {
-        setMyLocationAddress(address);
-      })
-      .catch(() => {
-        setMyLocationAddress("주소 변환 실패");
-      });
-  }, [userLocation]);
+ 
+useEffect(() => {
+  // 병원 타입 바뀔 때 기존 목록, 추천 병원 초기화
+  setHospitalMarkers([]);
+  setHospitalDetails([]);
+  setRecommendedHospital(null);
+}, [hospitalType]);
 
   // chat 모달
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
@@ -270,50 +319,44 @@ function App() {
       {selected === "Clinic" && (
         <DeptDiv>
           <DeptButton onClick={toggleDeptDropdown}>
-            Select Department <StyleDown />
+            {selectedDept
+              ? deptList.find(d => d.code === selectedDept)?.name
+              : "진료과 선택"}
+            <StyleDown />
           </DeptButton>
+
           {DeptDropdown && (
             <Dropdown>
               {deptList.map((dept, idx) => (
-                <DropdownItem key={idx}>{dept}</DropdownItem>
+                <DropdownItem
+                  key={idx}
+                  onClick={() => {
+                    setSelectedDept(dept.code);     // 선택된 진료과 코드 설정
+                    setDeptDropdown(false);         // 드롭다운 닫기
+                  }}
+                >
+                  {dept.name}
+                </DropdownItem>
               ))}
             </Dropdown>
           )}
-          <LocRow>
-            <MylocateDiv>
-              {myLocationAddress}
-              {isMyLocOpen && (
-                <LocationPopup>{myLocationAddress}</LocationPopup>
-              )}
-            </MylocateDiv>
-            <ArrowIcon
-              open={isMyLocOpen}
-              onClick={() => setIsMyLocOpen((prev) => !prev)}
-            />
-          </LocRow>
         </DeptDiv>
+
       )}
 
       {selected === "ER" && (
-        <DropdownContainer>
-          <ERdiv>
-            <LocRow>
-              <MylocateDiv>
-                {myLocationAddress}
-                {isMyLocOpen && (
-                  <LocationPopup>{myLocationAddress}</LocationPopup>
-                )}
-              </MylocateDiv>
-              <ArrowIcon
-                open={isMyLocOpen}
-                onClick={() => setIsMyLocOpen((prev) => !prev)}
-              />
-            </LocRow>
-          </ERdiv>
+        <DropdownContainer>       
         </DropdownContainer>
       )}
+      
+      <HospitalList
+        hospitalList={hospitalDetails}
+        type={hospitalType}
+        recommendedHospital={recommendedHospital}
+        isLoading={isLoading}
+        noResultType={noResultType}
 
-      <HospitalList hospitalList={hospitalDetails} isLoading={isLoading} />
+      />
       {/* isOpen prop: true이면 바텀 시트가 화면에 나타남 */}
       {/* <HospitalItemBody
         isOpen={showHospitalDetail}
@@ -484,7 +527,6 @@ const StyleDown = styled(DownArrow)`
 `;
 
 const DeptButton = styled.button`
-  width: 165px;
   height: 32px;
   background-color: #52aef9;
   color: #fff;
@@ -493,6 +535,7 @@ const DeptButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: space-around;
+  gap: 10px;
   padding: 0 16px;
   @media (max-width: 400px) {
     font-size: 12px;
@@ -529,6 +572,9 @@ const Dropdown = styled.div`
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   z-index: 5;
+  max-height: 140px;
+  overflow-y: auto;
+  scrollbar-width: none;
 `;
 
 const DropdownItem = styled.div`

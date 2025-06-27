@@ -11,12 +11,12 @@ const apiClient = axios.create({
 });
 
 // 주변 응급실 위치 요청
-export const getEmergency = async (lat, lng, radiusKm) => {
+export const getEmergency = async (lat, lon, language) => {
   try {
     const params = {
       lat,
-      lng,
-      radiusKm,
+      lon,
+      language,
     };
 
     const response = await apiClient.get('/emergency/nearby', { params });
@@ -40,6 +40,22 @@ export const getEmergencyInfo = async (lat, lng, radiusKm) => {
     return response.data;
   } catch (error) {
     console.error('getEmergencyInfo error:', error);
+    throw error;
+  }
+};
+
+export const recommend = async (lat, lng, radiusKm) => {
+  try {
+    const params = {
+      lat,
+      lng,
+      radiusKm,
+    };
+
+    const response = await apiClient.get('/gemini/recommend-emergency', { params });
+    return response.data;
+  } catch (error) {
+    console.error('recommend error:', error);
     throw error;
   }
 };
