@@ -16,8 +16,9 @@
   "sun": "일",
   "am": "오전",
   "pm": "오후",
-  "regular_day_off": "휴무일",
-  "er_available": "응급실 진료 가능",
+  "regular_day_off": "정기휴무",
+  "public_holiday": "법정 공휴일",
+  "er_available": "응급실 진료 가능 (24시간)",
   "open_now_long": "진료중",
   "open_now": "진료중",
   "closed_today": "진료마감/휴무",
@@ -51,5 +52,7 @@
     "family_medicine": "가정의학과",
     "emergency_medicine": "응급의학과",
     "dentistry": "치과"
-  }
+  },
+  "copied_to_clipboard": "클립보드에 복사되었습니다.",
+  "copy_failed": "복사에 실패했습니다."
 }

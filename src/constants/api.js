@@ -8,4 +8,5 @@ export const ENDPOINTS = {
     `${API_BASE_URL}/egen/emergency/beds?stage1=${stage1}&stage2=${stage2}`,
   suggestion: `${API_BASE_URL}/emergency-hospitals/suggestion`,
   chatbot: `${API_BASE_URL}/gemini/chatbot`,
+  hospitals: (hpid) => `${API_BASE_URL}/hospitals/${hpid}`,
 };

@@ -21,7 +21,6 @@ function BottomSheet({ isOpen, onClose, children }) {
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* <Backdrop onClick={onClose} /> */}
           <Sheet
             drag="y"
             dragConstraints={{ top: 0, bottom: 0 }}
@@ -36,7 +35,10 @@ function BottomSheet({ isOpen, onClose, children }) {
             exit="closed"
             $dragging={isDragging}
           >
-            <DragHandle $Dragging={isDragging} />
+            <HandleContainer $Dragging={isDragging}>
+              <DragHandle />
+            </HandleContainer>
+
             <Content>{children}</Content>
           </Sheet>
         </>
@@ -47,20 +49,12 @@ function BottomSheet({ isOpen, onClose, children }) {
 
 export default BottomSheet;
 
-// Styled Components
-const Backdrop = styled.div`
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 10;
-`;
-
 const Sheet = styled(motion.div)`
   position: fixed;
   bottom: 0;
   width: 100%;
   max-width: 480px;
-  height: 60%;
+  height: 50%;
   background: #fff;
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
@@ -68,20 +62,30 @@ const Sheet = styled(motion.div)`
   touch-action: none;
   cursor: ${({ $dragging }) =>
     $dragging ? "grabbing" : "default"}; // ✅ 커서 반영
+
+  filter: drop-shadow(0px 4px 12px rgba(0, 0, 0, 0.2));
 `;
 
-const DragHandle = styled.div`
-  width: 40px;
-  height: 5px;
-  background: #ccc;
-  border-radius: 3px;
-  margin: 8px auto;
+const HandleContainer = styled.div`
+  width: 100%;
+  height: 1.75rem;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
   /* cursor: grab; */
   &:active {
     cursor: grabbing;
   }
   cursor: ${({ $dragging }) => ($dragging ? "grabbing" : "grab")};
+`;
+
+const DragHandle = styled.div`
+  width: 3.5rem;
+  height: 0.5rem;
+  background: #ccc;
+  border-radius: 0.5rem;
 `;
 
 const Content = styled.div`

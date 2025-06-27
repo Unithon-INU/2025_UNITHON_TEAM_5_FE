@@ -17,11 +17,12 @@
   "am": "AM",
   "pm": "PM",
   "regular_day_off": "Closed (Regular day off)",
-  "er_available": "ER Available",
+  "public_holiday": "Public Holiday",
+  "er_available": "ER Available (24 hours)",
   "open_now_long": "OPEN NOW",
   "open_now": "OPEN",
   "closed_today": "CLOSED",
-  "clinic_hours_format": "{{startTime}} - {{endTime}} (Clinic)",
+  "clinic_hours_format": "{{startTime}} - {{endTime}}",
   "hours_format": "{{dayRange}}: {{startTime}} - {{endTime}}",
   "closed_format": "{{dayRange}}: {{dayOffText}}",
   "new_chat": "New Chat",
@@ -51,5 +52,7 @@
     "family_medicine": "Family Medicine",
     "emergency_medicine": "Emergency Medicine",
     "dentistry": "Dentistry"
-  }
+  },
+  "copied_to_clipboard": "Copied Successfully",
+  "copy_failed": "Copy Failed"
 }
