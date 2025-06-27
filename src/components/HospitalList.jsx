@@ -3,11 +3,11 @@ import styled from "styled-components";
 import HospitalItem from "./HospitalItem";
 import useLanguageStore from "../store/languageStore";
 
-export default function HospitalList({ hospitalList, type, recommendedHospital, isLoading ,noResultType}) {
+export default function HospitalList({ hospitalList, type, recommendedHospital, isLoading ,noResultType,isopen}) {
   const language = useLanguageStore(state => state.language);
 
   if (isLoading) return <div>Loading...</div>;
-
+  console.log("추천병원",recommendedHospital)
   return (
     <Wrapper>
       {/* AI 추천 병원 (응급 병원에서만 표시) */}
@@ -18,6 +18,7 @@ export default function HospitalList({ hospitalList, type, recommendedHospital, 
             address={recommendedHospital.addr}
             tel={recommendedHospital.dutyTel3}
             icuInfo={recommendedHospital.beds}
+            reason={recommendedHospital.reason}
             recommended={true}
           />
         </RecommendedWrapper>
@@ -45,6 +46,8 @@ export default function HospitalList({ hospitalList, type, recommendedHospital, 
               tel={hospital.tel}
               recommended={false}
               type={'Clinic'}
+              isOpen={hospital.isOpen}
+
             />
           ) : (
             <HospitalItem

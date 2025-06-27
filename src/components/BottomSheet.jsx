@@ -59,7 +59,7 @@ const Sheet = styled(motion.div)`
   position: fixed;
   bottom: 0;
   width: 100%;
-  max-width: 393px;
+  max-width: 480px;
   height: 60%;
   background: #fff;
   border-top-left-radius: 20px;

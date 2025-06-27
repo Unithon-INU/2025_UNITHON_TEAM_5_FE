@@ -145,6 +145,7 @@ function App() {
               ? matchingBasic?.addressEn || recommendedDetail.dutyAddrEn || matchingBasic?.address || recommendedDetail.dutyAddr || ""
               : matchingBasic?.address || recommendedDetail.dutyAddr || "",
           isRecommended: true,
+          reason:recommendResponse.recommendedReason,
           ...recommendedDetail,
         };
       }
@@ -344,10 +345,7 @@ useEffect(() => {
 
       )}
 
-      {selected === "ER" && (
-        <DropdownContainer>       
-        </DropdownContainer>
-      )}
+      
       
       <HospitalList
         hospitalList={hospitalDetails}

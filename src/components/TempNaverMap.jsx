@@ -36,9 +36,7 @@ const TempNaverMap = ({
   const [popupVisible, setPopupVisible] = useState(isPopupVisible);
   const [popupPosition, setPopupPosition] = useState({ top: 5, left: 14 });
   const DEFAULT_ZOOM = 13;
-  const handleGoToUserLocation = () => {
-    mapRef.current.setZoom(DEFAULT_ZOOM);
-  };
+ 
 
   const handleGoToInitialLocation = () => {
     const { lat, lon } = useLocationStore.getState().initialUserLocation || {};
@@ -270,9 +268,7 @@ const TempNaverMap = ({
         <Reload />
         {t("search_nearby")}
       </TopCenterButton>
-      <TopCenterIcon onClick={handleGoToUserLocation}>
-        <Full style={{ width: "32px", height: "32px" }} />
-      </TopCenterIcon>
+      
 
       <Popup
         style={{
@@ -306,7 +302,6 @@ export default TempNaverMap;
 const MapContainer = styled.div`
   width: 100%;
   min-height: 400px;
-  border: 1px solid #ccc;
   position: relative;
   box-sizing: border-box;
 `;
