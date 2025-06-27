@@ -58,7 +58,7 @@ function App() {
   const now = new Date();
   const kstOffset = 9 * 60 * 60 * 1000; // 9시간 (밀리초)
   const kstDate = new Date(now.getTime() + kstOffset);
-  const currentTime = kstDate.toISOString().split('.')[0]; // 밀리초 제거
+  const currentTime = kstDate.toISOString().split(".")[0]; // 밀리초 제거
   const fetchHospitalsNearby = useCallback(async () => {
     if (!userLocation) {
       alert("현재 위치를 먼저 확인해주세요.");
@@ -394,7 +394,7 @@ const DeptDiv = styled.div`
   align-items: center;
   gap: 8px;
   justify-content: space-between;
-  border-bottom: solid 1px gray;
+  /* border-bottom: solid 1px gray; */
 `;
 
 const DropdownContainer = styled.div`

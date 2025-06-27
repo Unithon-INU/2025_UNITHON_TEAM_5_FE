@@ -135,7 +135,9 @@ export default function HospitalItem({
 }
 
 const Wrapper = styled.div`
-  border-bottom: 1px solid gray;
+  border-bottom: 0.5px solid
+    ${({ recommended }) => (recommended ? "lightpink" : "gray")};
+
   width: 100%;
   height: 6rem;
   background: ${({ recommended }) =>
