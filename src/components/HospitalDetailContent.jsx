@@ -84,7 +84,7 @@ const transformData = (data, lang) => {
   // 3. 최종 데이터 객체 반환
   return {
     name: lang === "en" ? data.dutyNameEn : data.dutyName,
-    nameOriginal: lang === "ko" ? data.dutyName : data.dutyNameEn,
+    nameOriginal: lang === "en" ? data.dutyName : data.dutyNameEn,
     address: lang === "en" ? data.dutyAddrEn : data.dutyAddr,
     phone: data.dutyTel1,
     hasER: !!data.dutyTel3, // 응급실 전화번호 유무로 판단
@@ -116,6 +116,7 @@ function HospitalDetailContent({ hpid }) {
         const data = await getHospitalById(hpid);
         // API 원본 데이터를 UI에 맞게 가공하여 상태에 저장
         setHospitalData(transformData(data, i18n.language));
+        console.log("병원정보 : ", hospitalData);
       } catch (err) {
         console.error(err);
         setError(err.message);
@@ -145,112 +146,105 @@ function HospitalDetailContent({ hpid }) {
 
   // --- JSX (렌더링 부분) ---
   return (
-    <>
-      {/* <ImageArea>
-        <MainImage />
-        <MainImage />
-      </ImageArea> */}
-      <InfoArea>
-        <TypeArea>
-          {hospitalData.hasER && (
-            <HospitalTypeER>
-              <span>{t("er_type")}</span>
-            </HospitalTypeER>
-          )}
-          {hospitalData.hasClinic && (
-            <HospitalTypeGeneral>
-              <span>{t("clinic_type")}</span>
-            </HospitalTypeGeneral>
-          )}
-        </TypeArea>
+    <InfoArea>
+      <TypeArea>
+        {hospitalData.hasER && (
+          <HospitalTypeER>
+            <span>{t("er_type")}</span>
+          </HospitalTypeER>
+        )}
+        {hospitalData.hasClinic && (
+          <HospitalTypeGeneral>
+            <span>{t("clinic_type")}</span>
+          </HospitalTypeGeneral>
+        )}
+      </TypeArea>
 
-        <TitleArea>
-          <span>{hospitalData.name}</span>
-          {hospitalData.openToday.startTime && (
-            <StatusOpen>{t("open_now")}</StatusOpen>
-          )}
-        </TitleArea>
+      <TitleArea>
+        <span>{hospitalData.name}</span>
+        {hospitalData.openToday.startTime && (
+          <StatusOpen>{t("open_now")}</StatusOpen>
+        )}
+      </TitleArea>
+      {i18n.language === "en" ? (
+        <OriginalName>{hospitalData.nameOriginal}</OriginalName>
+      ) : null}
 
-        <span>{hospitalData.nameOriginal}</span>
+      <DetailsArea>
+        <InfoRow>
+          <img src={PinIcon} alt="address icon" />
+          {hospitalData.address}
+        </InfoRow>
 
-        <DetailsArea>
+        {hospitalData.openToday.startTime && (
           <InfoRow>
-            <img src={PinIcon} alt="address icon" />
-            {hospitalData.address}
+            <img src={ClockIcon} alt="time icon" />
+            <span>{t("open_today")}</span>
+            <EmphasizedText>
+              {t("clinic_hours_format", {
+                startTime: formatTime(
+                  hospitalData.openToday.startTime,
+                  i18n.language
+                ),
+                endTime: formatTime(
+                  hospitalData.openToday.endTime,
+                  i18n.language
+                ),
+              })}
+            </EmphasizedText>
           </InfoRow>
+        )}
 
-          {hospitalData.openToday.startTime && (
-            <InfoRow>
-              <img src={ClockIcon} alt="time icon" />
-              <span>{t("open_today")}</span>
-              <EmphasizedText>
-                {t("clinic_hours_format", {
-                  startTime: formatTime(
-                    hospitalData.openToday.startTime,
-                    i18n.language
-                  ),
-                  endTime: formatTime(
-                    hospitalData.openToday.endTime,
-                    i18n.language
-                  ),
-                })}
-              </EmphasizedText>
-            </InfoRow>
-          )}
+        <OpeningHours>
+          <EmphasizedText>{t("opening_hours_clinic")}</EmphasizedText>
+          {hospitalData.openingHours.map((rule, index) => {
+            const firstDay = t(rule.days[0]);
+            const lastDay = t(rule.days[rule.days.length - 1]);
+            const dayRangeText =
+              rule.days.length > 1 ? `${firstDay} - ${lastDay}` : firstDay;
 
-          <OpeningHours>
-            <EmphasizedText>{t("opening_hours_clinic")}</EmphasizedText>
-            {hospitalData.openingHours.map((rule, index) => {
-              const firstDay = t(rule.days[0]);
-              const lastDay = t(rule.days[rule.days.length - 1]);
-              const dayRangeText =
-                rule.days.length > 1 ? `${firstDay} - ${lastDay}` : firstDay;
+            if (rule.isClosed) {
+              return (
+                <p key={index}>
+                  {t("closed_format", {
+                    dayRange: dayRangeText,
+                    dayOffText: t("regular_day_off"),
+                  })}
+                </p>
+              );
+            } else {
+              return (
+                <p key={index}>
+                  {t("hours_format", {
+                    dayRange: dayRangeText,
+                    startTime: formatTime(rule.startTime, i18n.language),
+                    endTime: formatTime(rule.endTime, i18n.language),
+                  })}
+                </p>
+              );
+            }
+          })}
+        </OpeningHours>
 
-              if (rule.isClosed) {
-                return (
-                  <p key={index}>
-                    {t("closed_format", {
-                      dayRange: dayRangeText,
-                      dayOffText: t("regular_day_off"),
-                    })}
-                  </p>
-                );
-              } else {
-                return (
-                  <p key={index}>
-                    {t("hours_format", {
-                      dayRange: dayRangeText,
-                      startTime: formatTime(rule.startTime, i18n.language),
-                      endTime: formatTime(rule.endTime, i18n.language),
-                    })}
-                  </p>
-                );
-              }
-            })}
-          </OpeningHours>
+        {hospitalData.hasER && (
+          <InfoRow style={{ marginLeft: "-2px" }}>
+            <img src={ERIcon} alt="er icon" style={{ marginTop: "-4px" }} />
+            <span style={{ color: "#FF714A" }}>{t("er_available")}</span>
+          </InfoRow>
+        )}
 
-          {hospitalData.hasER && (
-            <InfoRow style={{ marginLeft: "-2px" }}>
-              <img src={ERIcon} alt="er icon" style={{ marginTop: "-4px" }} />
-              <span style={{ color: "#FF714A" }}>{t("er_available")}</span>
-            </InfoRow>
-          )}
-
-          {hospitalData.phone && (
-            <InfoRow>
-              <img src={PhoneIcon} alt="phone icon" style={{ width: "14px" }} />
-              {hospitalData.phone}
-            </InfoRow>
-          )}
-        </DetailsArea>
-      </InfoArea>
-    </>
+        {hospitalData.phone && (
+          <InfoRow>
+            <img src={PhoneIcon} alt="phone icon" style={{ width: "14px" }} />
+            {hospitalData.phone}
+          </InfoRow>
+        )}
+      </DetailsArea>
+    </InfoArea>
   );
 }
 
 export default HospitalDetailContent;
-
-// --- Styled Components ---
 
 const StatusContainer = styled.div`
   display: flex;
@@ -261,24 +255,23 @@ const StatusContainer = styled.div`
   color: ${(props) => (props.isError ? "red" : "#555")};
 `;
 
-// --- Styled Components ---
-const ImageArea = styled.div`
-  width: 100%;
-  height: 129px;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  flex-shrink: 0;
-`;
+// const ImageArea = styled.div`
+//   width: 100%;
+//   height: 129px;
+//   display: flex;
+//   justify-content: space-around;
+//   align-items: center;
+//   flex-shrink: 0;
+// `;
 
-const MainImage = styled.div`
-  width: 194px;
-  height: 129px;
-  background: #eee;
-  background-image: url("https://via.placeholder.com/199x129");
-  background-size: cover;
-  background-position: center;
-`;
+// const MainImage = styled.div`
+//   width: 194px;
+//   height: 129px;
+//   background: #eee;
+//   background-image: url("https://via.placeholder.com/199x129");
+//   background-size: cover;
+//   background-position: center;
+// `;
 
 const HospitalTypeGeneral = styled.div`
   border: none;
@@ -305,6 +298,7 @@ const HospitalTypeER = styled(HospitalTypeGeneral)`
 const InfoArea = styled.div`
   width: 100%;
   padding: 20px;
+  /* padding: 0.5rem 1.25rem; */
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -322,7 +316,7 @@ const TitleArea = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 6px 0 6px 4px;
+  margin: 0.5rem 0 0.5rem 0.25rem;
 
   span {
     color: #3a78eb;
@@ -331,6 +325,12 @@ const TitleArea = styled.div`
     font-weight: 700;
     line-height: 1.25rem;
   }
+`;
+
+const OriginalName = styled.span`
+  font-size: 1rem;
+  color: #565656;
+  margin-left: 0.25rem;
 `;
 
 const StatusOpen = styled.div`
