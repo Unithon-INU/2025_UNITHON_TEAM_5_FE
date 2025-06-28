@@ -22,6 +22,7 @@ export default function HospitalItem({
   isOpen,
   onClick 
 }) {
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isNameModalOpen, setIsNameModalOpen] = useState(false);
   const [isResonModalOpen, setIsResonModalOpen] = useState(false);
@@ -45,24 +46,27 @@ export default function HospitalItem({
   }, [isResonModalOpen]);
 
   return (
-    <Wrapper recommended={recommended} onClick={onClick}>
+    <Wrapper recommended={recommended} >
       <FirstArea>
-        <NameRow>
-          <NameText>
+        <NameRow onClick={onClick}>
+          <NameText >
             <strong>{name}</strong>
           </NameText>
-          <DropdownBtn onClick={() => setIsNameModalOpen(!isNameModalOpen)}>
-            <RotatingIcon open={isNameModalOpen} size={16} />
-          </DropdownBtn>
+          
+
         </NameRow>
         <AddressRow>
           <AddressText>
             {type === "Clinic" ? address : address || "null"}
           </AddressText>
           {address && (
-            <DropdownBtn onClick={() => setIsModalOpen(!isModalOpen)}>
-              <RotatingIcon open={isModalOpen} size={16} />
+            <DropdownBtn onClick={(e) => {
+              e.stopPropagation();
+              setIsModalOpen(!isModalOpen);
+            }}>
+              <RotatingIcon2 open={isModalOpen} size={16} />
             </DropdownBtn>
+
           )}
         </AddressRow>
 
@@ -270,10 +274,17 @@ const RotatingIcon = styled(IoIosArrowDown)`
   transition: transform 0.3s ease;
   transform: ${({ open }) => (open ? "rotate(180deg)" : "rotate(0deg)")};
 `;
+const RotatingIcon2 = styled(IoIosArrowDown)`
+  transition: transform 0.3s ease;
+  transform: ${({ open }) => (open ? "rotate(180deg)" : "rotate(0deg)")};
+`;
 const NameRow = styled.div`
   display: flex;
   align-items: center;
   max-width: 100%;
+   &:hover {
+    cursor: pointer;
+   }
 `;
 
 const NameText = styled.span`
